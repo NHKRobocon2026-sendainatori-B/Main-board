@@ -1,0 +1,4 @@
+# STM32CubeIDE / Eclipse の不要ファイル除外設定
+Debug/
+.mxproject
+.settings/
