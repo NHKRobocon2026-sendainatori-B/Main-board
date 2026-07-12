@@ -1,6 +1,6 @@
 /*
  * UnitSterring.h
- *
+ * 操舵用のギアは1:4
  *  Created on: Jul 9, 2026
  *      Author: nika-
  */

@@ -27,13 +27,13 @@ void Unit_Steering::setZero(){
 	zeromode = setZeroMode::ROTATE180;
 
 	steer_pid->disable();
-	steer->move(300);
+	steer->move(3000);
 }
 
 /*180°回ったとしても見つからなかった。向き変更*/
 void Unit_Steering::Change_direction(){
 	zeromode = setZeroMode::ROTATE360;
-	steer->move(-300);
+	steer->move(-3000);
 }
 
 /*フォトインタラプタからの割り込みで呼び出す、PIDを有効にして*/
