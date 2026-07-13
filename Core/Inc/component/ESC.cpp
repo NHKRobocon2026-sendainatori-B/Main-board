@@ -7,7 +7,8 @@
 
 #include <ESC.h>
 
-/*ESCのプログラム、この後絶対setMaxを呼び出して*/
+/*ESCのプログラム、この後絶対setMaxを呼び出して
+ * PWMが1増えると1μ秒かわるように調整必要*/
 ESC::ESC(TIM_HandleTypeDef* _tim_handle, uint16_t _tim_channel)
 : tim_handle(_tim_handle), tim_channel(_tim_channel), maxOut(0), locked(true)
 {
@@ -21,9 +22,12 @@ ESC::~ESC() {
 	// TODO Auto-generated destructor stub
 }
 
-/*最大出力を設定*/
+/*最大出力を設定(1msからどのくらい変えるか、PWMの数値分追加)*/
 void ESC::setMax(uint16_t _maxOut){
 	maxOut = _maxOut;
+	__HAL_TIM_SET_COMPARE(tim_handle, tim_channel, 1000);
+	HAL_Delay(2000);
+	__HAL_TIM_SET_COMPARE(tim_handle, tim_channel, 0);
 	locked = false;
 }
 
@@ -33,7 +37,7 @@ void ESC::move(uint8_t ratio){
 	if (ratio < 0 || ratio > 100){
 		ratio = 0;
 	}
-	__HAL_TIM_SET_COMPARE(tim_handle, tim_channel, (uint16_t)((static_cast<float>(ratio) / 100.0f) * maxOut));
+	__HAL_TIM_SET_COMPARE(tim_handle, tim_channel, (uint16_t)((static_cast<float>(ratio) / 100.0f) * maxOut + 1000));
 }
 
 void ESC::lock(){
