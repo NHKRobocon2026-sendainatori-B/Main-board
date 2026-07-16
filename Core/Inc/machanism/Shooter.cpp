@@ -7,8 +7,8 @@
 
 #include "Shooter.h"
 
-Shooter::Shooter(MD4ch_child* _motor, ESC* _esc)
-: motor(_motor), esc(_esc), counter(0), locked(false)
+Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
+: motor(_motor), esc(_esc), servo(_servo),counter(0), locked(false)
 {
 	// TODO Auto-generated constructor stub
 	motor->setMode(Mode::OPENLOOP);
@@ -34,6 +34,16 @@ void Shooter::move_ESC(){
 
 void Shooter::stop_ESC(){
 	esc->move(0);
+}
+
+void Shooter::open_servo(){
+	if (locked) return;
+	servo->move(servo_angle);
+}
+
+void Shooter::close_servo(){
+	if (locked) return;
+	servo->move(0);
 }
 
 void Shooter::Interrupt(){

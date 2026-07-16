@@ -11,16 +11,19 @@
 #include "main.h"
 #include "MD4ch_child.h"
 #include "ESC.h"
+#include "Servo.h"
 
 class Shooter {
 public:
-	Shooter(MD4ch_child* _motor, ESC* _esc);
+	Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo);
 	virtual ~Shooter();
 
 	void move_Motor();
 	void stop_Motor();
 	void move_ESC();
 	void stop_ESC();
+	void open_servo();
+	void close_servo();
 	void Interrupt();
 
 	void lock();
@@ -32,11 +35,13 @@ public:
 private:
 	MD4ch_child* motor; //真ん中で振り回す場所
 	ESC* esc; //端で雑巾をぐるぐる回す場所
+	Servo* servo; //雑巾を掴むサーボ
 
 	uint16_t counter; //フォトインタラプタの割り込みカウンタ
 
 	const int16_t motor_out = 300; //モーターの出力、絶対変更
 	const int8_t esc_out = 5; //ESCの出力、絶対変更
+	const uint16_t servo_angle = 120;
 
 	bool locked;
 };
