@@ -21,7 +21,7 @@ SpeedPIDController::~SpeedPIDController() {
 	// TODO Auto-generated destructor stub
 }
 
-/* 目標値を設定、このスピードになるようにする */
+/* 目標値を設定、このスピードになるようにする(rpm) */
 void SpeedPIDController::setTarget(int16_t _target){
 	target = _target;
 	last_angle = enc->getAngle();
@@ -32,6 +32,10 @@ void SpeedPIDController::setPID(float _kp, float _ki, float _kd){
 	gain.kp = _kp;
 	gain.ki = _ki;
 	gain.kd = _kd;
+}
+
+void SpeedPIDController::setPulse(float _pulse){
+	pulse = _pulse;
 }
 
 void SpeedPIDController::setPID(PIDgain _gain){
@@ -66,11 +70,14 @@ void SpeedPIDController::update(){
 	if (!effective) return;
 
 	int32_t now_angle = enc->getAngle();
-	float now_speed = (float)(now_angle - last_angle) / dt;
-	float error = target - now_speed;
-	float proportional = error * gain.kp;
+	float pulse_per_sec = static_cast<float>(now_angle - last_angle) / dt;
 
-	if ((int16_t)(error * error) < (allowError * allowError)) error = 0.0f;
+	float now_rpm = (pulse_per_sec / pulse) * 60.0f;
+	float error = target - now_rpm;
+
+	if (std::fabs(error) < static_cast<float>(allowError)) error = 0.0f;
+
+	float proportional = error * gain.kp;
 
 	float derivative = gain.kd * (error - last_error) / dt;
 	integral += error * dt;

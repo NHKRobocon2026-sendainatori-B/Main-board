@@ -8,6 +8,8 @@
 #ifndef INC_COMPONENT_SPEEDPIDCONTROLLER_H_
 #define INC_COMPONENT_SPEEDPIDCONTROLLER_H_
 
+#include <cmath>
+
 #include <main.h>
 
 #include "component/private/Actuator.h"
@@ -31,6 +33,7 @@ public:
 	void setAllowError(int16_t _allowError);
 	void setMaxIntegral(float _max_integral);
 	void setMaxOutput(int16_t _max_output);
+	void setPulse(float _pulse);
 	int16_t getMaxOutput(){ return max_output; };
 	void setInterval(float _dt);
 	void update();
@@ -48,7 +51,7 @@ public:
 	Encoder* enc;
 
 private:
-	int16_t target;
+	int32_t target;
 
 	PIDgain gain = {
 			.kp = 0.0f,
@@ -62,6 +65,7 @@ private:
 	int16_t allowError; //許容誤差
 	int16_t max_output;
 	int32_t last_angle = 0;
+	float pulse = 8192.0f;
 
 	bool locked;
 	bool startFlag;

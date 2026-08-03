@@ -39,6 +39,10 @@ void SpeedPIDTuner::setMethod(TuningMethod _method){
 	method = _method;
 }
 
+void SpeedPIDTuner::setPulse(float _pulse){
+	pulse = _pulse;
+}
+
 void SpeedPIDTuner::tuneCHR(const StepResponseData& data){
 	if (data.input <= 0.0f || data.dead_time_sec <= 0.0f) return;
 
@@ -72,8 +76,12 @@ void SpeedPIDTuner::update1ms(){
 	if (state != State::RunningExperiment) return;
 
 	experiment_time_sec_ += 0.001f; // 1ms加算
-	float current_rpm = (float)(target->enc->getAngle() - last_angle) / 0.001f;
-	last_angle = target->enc->getAngle();
+
+	int32_t current_angle = target->enc->getAngle();
+	int32_t diff_angle = current_angle - last_angle;
+	last_angle = current_angle;
+
+	float current_rpm = (static_cast<float>(diff_angle) * 60000.0f) / pulse;
 
 	filtered_speed = (1.0f - alpha) * filtered_speed + alpha * current_rpm;
 

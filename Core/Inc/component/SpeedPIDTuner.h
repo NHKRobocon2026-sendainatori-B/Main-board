@@ -38,6 +38,7 @@ public:
 	virtual ~SpeedPIDTuner();
 
 	void setMethod(TuningMethod _method);
+	void setPulse(float _pulse);
 
 	void start(float _test_pwm_);
 	void stop();
@@ -58,6 +59,7 @@ private:
 	float filtered_speed = 0.0f;
 	float experiment_time_sec_ = 0.0f;
 	float alpha = 0.2f;
+	float pulse = 8192.0f;
 
 	void tuneCHR(const StepResponseData& data);
 	void processTuning();
