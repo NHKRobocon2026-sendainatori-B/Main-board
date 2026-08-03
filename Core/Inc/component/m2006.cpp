@@ -9,9 +9,8 @@
 
 /*　m2006　*/
 m2006::m2006()
-: targetCurrent(0), targetSpeed(0), maxSpeed(0), speed(0), ampere(0),
-  temp(0), totalAngle(0), lastAngle(0), kp(0.1f), ki(0.1f), kd(0.1f),
-  max_integral(0.0f), integral(0.0f), last_error(0.0f), dt(0.01f), locked(false), startFlag(true)
+: targetCurrent(0), max_current(16000), targetSpeed(0), maxSpeed(0), speed(0), ampere(0),
+  temp(0), totalAngle(0), lastAngle(0), locked(false), startFlag(true)
 {
 	// TODO Auto-generated constructor stub
 
@@ -21,10 +20,16 @@ m2006::~m2006() {
 	// TODO Auto-generated destructor stub
 }
 
-/* 目標スピードを設定 */
-void m2006::move(int16_t out){
-	targetSpeed = out;
-	PID_reset();
+void m2006::initPID(SpeedPIDController* _speed_pid_){
+	speed_pid_ = _speed_pid_;
+}
+
+/* 目標出力の設定
+ * 的確なスピードを変更したい場合はSpeedPIDControllerを使う */
+void m2006::move(int16_t _out){
+	if (locked) return;
+	if (speed_pid_ == nullptr) return;
+	targetCurrent = _out;
 }
 
 /* 今の角度を取得 */
@@ -37,52 +42,11 @@ void m2006::setZero(){
 	totalAngle = 0;
 }
 
-/* PIDの値を設定 */
-void m2006::setPID(float _kp, float _ki, float _kd){
-	kp = _kp;
-	ki = _ki;
-	kd = _kd;
-}
-
-/* 積分の最大値を設定 */
-void m2006::setMaxIntegral(float _max_integral){
-	max_integral = _max_integral;
-}
-
-/*　PIDの間隔を設定　*/
-void m2006::setInterval(uint8_t _dt){
-	dt = _dt;
-}
-
-/* PIDの計算　一定間隔で呼び出す */
-void m2006::calculatePID(){
+void m2006::update(){
 	if (locked) return;
+	if (speed_pid_ == nullptr) return;
 
-	float error = targetSpeed - speed;
-	int16_t proportional = error * kp;
-
-	float derivative = kd * (error - last_error) / dt;
-	integral = integral + error * dt * ki;
-	last_error = error;
-
-	if (integral > max_integral) integral = max_integral;
-	if (integral < -max_integral) integral = -max_integral;
-
-	float output = proportional + integral + derivative;
-
-	int32_t max_current = 16000;
-	if (output > max_current) output = max_current;
-	if (output < -max_current) output = -max_current;
-
-	int16_t current = (int16_t)output;
-
-	targetCurrent = current;
-}
-
-/* PIDの微分、積分をリセット */
-void m2006::PID_reset(){
-	last_error = 0.0f;
-	integral = 0.0f;
+	speed_pid_->update();
 }
 
 /* CANからのデータから取得 managerから呼び出してもらう */
@@ -101,6 +65,7 @@ void m2006::updateFromCAN(uint8_t data[8]){
 	    totalAngle += diff;
 	} else {
 		//最初のデータを基準にする
+		lastAngle = rawAngle;
 		startFlag = false;
 	}
 	lastAngle = rawAngle;
@@ -108,13 +73,11 @@ void m2006::updateFromCAN(uint8_t data[8]){
 
 /* ロック */
 void m2006::lock(){
-	targetSpeed = 0;
-	targetCurrent = 0;
-	integral = 0.0f;
 	locked = true;
 }
 
 /* アンロック */
 void m2006::unlock(){
+	speed_pid_->reset();
 	locked = false;
 }

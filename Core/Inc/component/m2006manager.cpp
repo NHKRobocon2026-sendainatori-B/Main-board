@@ -64,15 +64,15 @@ void m2006_manager::sendtoCAN() {
 }
 
 /* PIDを計算 一定間隔で呼び出す */
-void m2006_manager::updatePID(){
+void m2006_manager::update(){
 	for (auto data : *children){
-		data->calculatePID();
+		data->update();
 	}
 }
 
 /* CANからの情報を格納 dataとidをそのまま入れて */
 void m2006_manager::updatefromCAN(uint8_t data[8], uint32_t id){
-	uint8_t idx = id - 0x201;
+	int32_t idx = id - 0x201;
 	if (idx < 0 || idx >= static_cast<int32_t>(children->size())) {
 		return;
 	}
