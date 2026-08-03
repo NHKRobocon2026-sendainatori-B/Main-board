@@ -8,46 +8,66 @@
 #include <UnitSteering.h>
 
 /*独ステの1ユニット*/
-Unit_Steering::Unit_Steering(MD4ch_child* _drive, m2006* _steer, PID* _steer_pid)
-: drive(_drive), steer(_steer), steer_pid(_steer_pid), settingZero(false), firstAngle(_steer->getAngle())
+UnitSteering::UnitSteering(MD4ch_child* _drive, PositionPIDController* _steer_pid)
+: drive(_drive), steer_pid(_steer_pid), settingZero(false), firstAngle(_steer_pid->speed_pid_->enc->getAngle())
 {
 	// TODO Auto-generated constructor stub
 	drive->setMode(Mode::OPENLOOP);
 }
 
-Unit_Steering::~Unit_Steering() {
+UnitSteering::~UnitSteering() {
 	// TODO Auto-generated destructor stub
 }
 
 /*原点を取る*/
-void Unit_Steering::setZero(){
-	if (!settingZero) return;
+void UnitSteering::setZero(){
 	settingZero = true;
-	firstAngle = steer->getAngle();
+	firstAngle = steer_pid->speed_pid_->enc->getAngle();
 	zeromode = setZeroMode::ROTATE180;
 
 	steer_pid->disable();
-	steer->move(3000);
+	steer_pid->speed_pid_->setTarget(3000);
 }
 
 /*180°回ったとしても見つからなかった。向き変更*/
-void Unit_Steering::Change_direction(){
-	zeromode = setZeroMode::ROTATE360;
-	steer->move(-3000);
+void UnitSteering::Change_direction(){
+	if (!settingZero) return;
+	if (zeromode == setZeroMode::ROTATE180){
+		zeromode = setZeroMode::ROTATE360;
+		steer_pid->speed_pid_->setTarget(-3000);
+	} else if (zeromode == setZeroMode::ROTATE360){
+		zeromode = setZeroMode::SETERROR;
+		steer_pid->lock();
+		drive->lock();
+	}
 }
 
 /*フォトインタラプタからの割り込みで呼び出す、PIDを有効にして*/
-void Unit_Steering::InterruptZero(){
+void UnitSteering::InterruptZero(){
 	if (!settingZero) return;
-	steer->move(0);
-	steer->setZero();
+	steer_pid->speed_pid_->setTarget(0);
+	steer_pid->speed_pid_->enc->setZero();
 	steer_pid->enable();
+	steer_pid->setTarget(0);
 	settingZero = false;
 }
 
 /*出力する*/
-void Unit_Steering::move(int16_t drive_value, int32_t steer_value){
+void UnitSteering::move(int16_t drive_value, int32_t steer_value){
 	if (settingZero) return;
+	if (locked) return;
 	drive->setOut(drive_value);
 	steer_pid->setTarget(steer_value);
+}
+
+void UnitSteering::lock(){
+	steer_pid->lock();
+	drive->lock();
+	locked = true;
+}
+
+void UnitSteering::unlock(){
+	steer_pid->unlock();
+	drive->unlock();
+	locked = false;
 }

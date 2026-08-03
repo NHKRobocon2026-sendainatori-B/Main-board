@@ -11,17 +11,18 @@
 #include "main.h"
 #include "m2006.h"
 #include "MD4ch_child.h"
-#include "PID.h"
+#include "PositionPIDController.h"
 
 enum setZeroMode{
 	ROTATE180, //180°正転
 	ROTATE360, //360°逆転
+	SETERROR
 };
 
-class Unit_Steering {
+class UnitSteering {
 public:
-	Unit_Steering(MD4ch_child* _drive, m2006* _steer, PID* _steer_pid);
-	virtual ~Unit_Steering();
+	UnitSteering(MD4ch_child* _drive, PositionPIDController* _steer_pid);
+	virtual ~UnitSteering();
 
 	void setZero();
 	void InterruptZero();
@@ -30,14 +31,18 @@ public:
 	int32_t getFirstAngle(){ return firstAngle; }; //最初の位置を取得
 	setZeroMode getZeromode(){ return zeromode; }; //現在のモードを取得、これをもとにエンコーダがどれくらい回転したらどういう動作をするかを
 
+	void lock();
+	void unlock();
+
 private:
 	MD4ch_child* drive;
-	m2006* steer;
-	PID* steer_pid;
+	PositionPIDController* steer_pid;
 
 	bool settingZero;
 	int32_t firstAngle; //原点取りをするために使う、180度回すときの最初の数値
 	setZeroMode zeromode;
+
+	bool locked = true;
 };
 
 #endif /* INC_MACHANISM_UNITSTEERING_H_ */
