@@ -5,7 +5,7 @@
  *      Author: nika-
  */
 
-#include "../../../../../NHKRobocon_2026/Core/Inc/machanism/Loader.h"
+#include "Loader.h"
 
 Loader::Loader() {
 	// TODO Auto-generated constructor stub

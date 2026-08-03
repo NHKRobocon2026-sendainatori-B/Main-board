@@ -5,7 +5,7 @@
  *      Author: nika-
  */
 
-#include "../../../../../NHKRobocon_2026/Core/Inc/machanism/Odometry.h"
+#include "Odometry.h"
 
 Odometry::Odometry() {
 	// TODO Auto-generated constructor stub

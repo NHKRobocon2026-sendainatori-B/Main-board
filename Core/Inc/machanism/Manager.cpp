@@ -5,7 +5,7 @@
  *      Author: nika-
  */
 
-#include "../../../../../NHKRobocon_2026/Core/Inc/machanism/Manager.h"
+#include "Manager.h"
 
 Manager::Manager() {
 	// TODO Auto-generated constructor stub
