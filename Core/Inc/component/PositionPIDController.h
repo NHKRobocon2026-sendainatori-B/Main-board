@@ -8,6 +8,8 @@
 #ifndef INC_COMPONENT_POSITIONPIDCONTROLLER_H_
 #define INC_COMPONENT_POSITIONPIDCONTROLLER_H_
 
+#include <cmath>
+
 #include "main.h"
 #include "SpeedPIDController.h"
 
@@ -20,7 +22,6 @@ public:
 
 	void setPID(float _kp);
 	void setAllowError(int16_t _allowError);
-	void setMaxIntegral(float _max_integral);
 	void setMaxSpeed(int16_t _max_speed);
 	void setInterval(float _dt);
 	void setMaxAcceleration(int16_t accele);

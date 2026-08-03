@@ -60,7 +60,7 @@ void PositionPIDController::update(){
 		int32_t now_angle = speed_pid_->enc->getAngle();
 		float error = (float)(target - now_angle);
 
-		if (error * error <= allowError * allowError){
+		if (std::fabs(error) <= allowError){
 			error = 0.0f;
 		}
 
