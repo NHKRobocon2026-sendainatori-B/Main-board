@@ -16,3 +16,10 @@ Loader::~Loader() {
 	// TODO Auto-generated destructor stub
 }
 
+void Loader::lock(){
+	locked = true;
+}
+
+void Loader::unlock(){
+	locked = false;
+}
