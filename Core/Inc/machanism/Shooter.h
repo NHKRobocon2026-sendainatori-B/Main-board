@@ -39,10 +39,6 @@ private:
 
 	uint16_t counter; //フォトインタラプタの割り込みカウンタ
 
-	const int16_t motor_out = 300; //モーターの出力、絶対変更
-	const int8_t esc_out = 5; //ESCの出力、絶対変更
-	const uint16_t servo_angle = 120;
-
 	bool locked;
 };
 

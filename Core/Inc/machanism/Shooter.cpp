@@ -7,6 +7,10 @@
 
 #include "Shooter.h"
 
+#define MOTOR_OUT 300 //モーターの出力、絶対変更
+#define ESC_OUT 5 //ESCの出力、絶対変更
+#define SERVO_ANGLE 120 //サーボのアングル、絶対変更
+
 Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
 : motor(_motor), esc(_esc), servo(_servo),counter(0), locked(false)
 {
@@ -20,7 +24,7 @@ Shooter::~Shooter() {
 
 void Shooter::move_Motor(){
 	if (locked) return;
-	motor->setOut(motor_out);
+	motor->setOut(MOTOR_OUT);
 }
 
 void Shooter::stop_Motor(){
@@ -29,7 +33,7 @@ void Shooter::stop_Motor(){
 
 void Shooter::move_ESC(){
 	if (locked) return;
-	esc->move(10);
+	esc->move(ESC_OUT);
 }
 
 void Shooter::stop_ESC(){
@@ -38,7 +42,7 @@ void Shooter::stop_ESC(){
 
 void Shooter::open_servo(){
 	if (locked) return;
-	servo->move(servo_angle);
+	servo->move(SERVO_ANGLE);
 }
 
 void Shooter::close_servo(){
