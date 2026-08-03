@@ -5,9 +5,11 @@
  *      Author: nika-
  */
 
-#include "../../../../../NHKRobocon_2026/Core/Inc/machanism/Steering.h"
+#include "Steering.h"
 
-Steering::Steering() {
+Steering::Steering(std::array<UnitSteering*, 4>* _units)
+: units(_units)
+{
 	// TODO Auto-generated constructor stub
 
 }
@@ -16,3 +18,27 @@ Steering::~Steering() {
 	// TODO Auto-generated destructor stub
 }
 
+void Steering::move(int16_t x, int16_t y, int16_t theta){
+	if (locked) return;
+	//計算をここに
+}
+
+void Steering::setZero(){
+	for (auto unit : *units){
+		unit->setZero();
+	}
+}
+
+void Steering::lock(){
+	locked = true;
+	for (auto unit : *units){
+		unit->lock();
+	}
+}
+
+void Steering::unlock(){
+	locked = false;
+	for (auto unit : *units){
+		unit->unlock();
+	}
+}
