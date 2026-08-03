@@ -27,6 +27,7 @@
 #include <MD4ch.h>
 #include <PositionPIDController.h>
 #include <SpeedPIDController.h>
+#include <SpeedPIDTuner.h>
 #include <RotaryEncoder.h>
 #include <ESC.h>
 #include <Servo.h>
@@ -55,12 +56,14 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
+UART_HandleTypeDef huart2;
+
 /* USER CODE BEGIN PV */
-bool flag = false;
+volatile bool flag = false;
 int32_t ms_counter = 0;
-int32_t last_angle = 0;
-double distance = 0;
-double diameter = 0.059;
+m2006_manager* manager_address = nullptr;
+int16_t speed;
+int32_t pos;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,6 +73,7 @@ static void MX_CAN1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -112,11 +116,11 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_TIM2_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   // RotaryEncoder
-  static RotaryEncoder encoder(&htim2);
-  encoder.start();
-  last_angle = encoder.getAngle();
+  //static RotaryEncoder encoder(&htim2);
+  //encoder.start();
   //encoder.getAngle()で取得、タイマー割り込みで
 
   /*
@@ -188,9 +192,32 @@ int main(void)
   esc.move(100);
   */
 
+  m2006 m1;
+  std::vector<m2006*> m2006s = {&m1};
+  m2006_manager manager(&m2006s, &hcan1);
+  manager_address = &manager;
+  SpeedPIDController speed_pid_(&m1, &m1);
+  PositionPIDController position_pid_(&speed_pid_);
+  m1.initPID(&speed_pid_);
+  position_pid_.setAllowError(100);
+  position_pid_.setInterval(10);
+  position_pid_.setMaxAcceleration(50000);
+  position_pid_.setMaxSpeed(2000);
+  position_pid_.setPID(0.25f);
+  speed_pid_.setAllowError(30);
+  speed_pid_.setInterval(10);
+  speed_pid_.setMaxIntegral(2000.0f);
+  speed_pid_.setMaxOutput(10000);
+  speed_pid_.setPID(0.089f, 0.234f, 0.011f);
+  SpeedPIDTuner tuner(&speed_pid_, TuningMethod::CHR_0Percent);
+
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+
+  position_pid_.setTarget(20000);
+  //tuner.start(1000.0f);
+  //speed_pid_.setTarget(3000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -201,13 +228,14 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  if (flag){
+		  //tuner.update1ms();
+		  manager.sendtoCAN();
+		  flag = false;
 
-
-		  if (ms_counter % 100 == 0){
-			  int32_t now_angle = encoder.getAngle();
-			  int32_t diff = now_angle - last_angle;
-			  distance += ((double)diff / 8192.0) * 3.14159265 * diameter;
-			  last_angle = now_angle;
+		  if (ms_counter % 10 == 0){
+			  position_pid_.update();
+			  pos = m1.getAngle();
+			  speed = m1.getSpeed();
 		  }
 	  }
   }
@@ -441,6 +469,39 @@ static void MX_TIM4_Init(void)
 }
 
 /**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -476,18 +537,9 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
 	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData) == HAL_OK){
 		if (rxHeader.StdId >= 0x201 && rxHeader.StdId <= 0x208) {
-			/*
-			 * ロボマスの使用、ここで使っているのはmanagerのアドレス
-			 * 作ってね
-			if (M2006_manager != nullptr) {
-				M2006_manager->updatefromCAN(rxData, rxHeader.StdId);
-				if (motor1_ad != nullptr) {
-					speed1 = motor1_ad->getSpeed();
-					angle1 = motor1_ad->getAngle();
-				}
-				if (motor2_ad != nullptr) speed2 = motor2_ad->getSpeed();
+			if (manager_address != nullptr){
+				manager_address->updatefromCAN(rxData, rxHeader.StdId);
 			}
-			*/
 		}
 	}
 }
