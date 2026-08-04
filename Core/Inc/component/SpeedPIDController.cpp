@@ -24,7 +24,6 @@ SpeedPIDController::~SpeedPIDController() {
 /* 目標値を設定、このスピードになるようにする(rpm) */
 void SpeedPIDController::setTarget(int16_t _target){
 	target = _target;
-	last_angle = enc->getAngle();
 }
 
 /* pidの値を設定 */
@@ -75,12 +74,23 @@ void SpeedPIDController::update(){
 	float now_rpm = (pulse_per_sec / pulse) * 60.0f;
 	float error = target - now_rpm;
 
-	if (std::fabs(error) < static_cast<float>(allowError)) error = 0.0f;
+	float derivative = 0.0f;
+	float proportional = 0.0f;
 
-	float proportional = error * gain.kp;
+	if (std::fabs(error) <= allowError){
+		error = 0.0f;
+		integral = 0.0f;
+		derivative = 0.0f;
+	} else {
+		proportional = error * gain.kp;
 
-	float derivative = gain.kd * (error - last_error) / dt;
-	integral += error * dt;
+		integral += error * dt;
+		if (integral > max_integral) integral = max_integral;
+		if (integral < -max_integral) integral = -max_integral;
+
+		derivative = gain.kd * (error - last_error) / dt;
+	}
+
 	last_error = error;
 
 	if (integral > max_integral) integral = max_integral;
@@ -100,6 +110,7 @@ void SpeedPIDController::update(){
 /* PIDを有効化 */
 void SpeedPIDController::enable(){
 	effective = true;
+	last_angle = enc->getAngle();
 }
 
 /* PIDを無効化 Actに直接数値を入れられる */
@@ -111,6 +122,9 @@ void SpeedPIDController::disable(){
 void SpeedPIDController::reset(){
 	integral = 0.0f;
 	last_error = 0.0f;
+	if (enc != nullptr) {
+		last_angle = enc->getAngle();
+	}
 }
 
 /* ロック */
