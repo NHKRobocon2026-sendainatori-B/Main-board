@@ -20,11 +20,13 @@ public:
 
 	void setTarget(int32_t _target);
 
-	void setPID(float _kp);
+	void setPID(float _kp, float _ki,float _kd);
+	void setPID(PIDgain _gain);
 	void setAllowError(int16_t _allowError);
+	void setMaxIntegral(float _max_integral);
 	void setMaxSpeed(int16_t _max_speed);
 	void setInterval(float _dt);
-	void setMaxAcceleration(int16_t accele);
+	void setMaxAcceleration(int32_t accele);
 	void update();
 
 	void reset();
@@ -40,15 +42,18 @@ private:
 
 	int32_t target;
 	int16_t target_speed; //現在の出力
-	int16_t max_acceleration = 100; //最大加速
+	int32_t max_acceleration = 100; //最大加速
 
 	PIDgain gain = {
 			.kp = 0.0f,
 			.ki = 0.0f,
 			.kd = 0.0f
 	};
+	float max_integral = 1000.0f;
+	float integral = 0.0f;
 	int16_t allowError; //許容誤差
 	int16_t max_speed;
+	int32_t last_error = 0;
 	float dt = 0.01f;
 
 	bool locked;

@@ -26,13 +26,24 @@ void PositionPIDController::setTarget(int32_t _target){
 }
 
 /* pidの値を設定 */
-void PositionPIDController::setPID(float _kp){
+void PositionPIDController::setPID(float _kp, float _ki,float _kd){
 	gain.kp = _kp;
+	gain.ki = _ki;
+	gain.kd = _kd;
+}
+
+/* pidの値を設定 */
+void PositionPIDController::setPID(PIDgain _gain){
+	gain = _gain;
 }
 
 /* 許容誤差を設定 */
 void PositionPIDController::setAllowError(int16_t _allowError){
 	allowError = _allowError;
+}
+
+void PositionPIDController::setMaxIntegral(float _max_integral){
+	max_integral = _max_integral;
 }
 
 /* 最大出力を設定 */
@@ -44,11 +55,10 @@ void PositionPIDController::setMaxSpeed(int16_t _max_speed){
  * speed_pidも共有される*/
 void PositionPIDController::setInterval(float _dt){
 	dt = _dt / 1000.0f;
-	speed_pid_->setInterval(_dt);
 }
 
 /* 許す一秒間の変化の大きさを設定 */
-void PositionPIDController::setMaxAcceleration(int16_t accele){
+void PositionPIDController::setMaxAcceleration(int32_t accele){
 	if (accele < 1) return;
 	max_acceleration = accele;
 }
@@ -60,11 +70,29 @@ void PositionPIDController::update(){
 		int32_t now_angle = speed_pid_->enc->getAngle();
 		float error = (float)(target - now_angle);
 
+		float derivative = 0.0f;
+		float proportional = 0.0f;
+
 		if (std::fabs(error) <= allowError){
 			error = 0.0f;
+			integral = 0.0f;
+			derivative = 0.0f;
+		} else {
+			proportional = error * gain.kp;
+
+			integral += error * dt;
+			if (integral > max_integral) integral = max_integral;
+			if (integral < -max_integral) integral = -max_integral;
+
+			derivative = gain.kd * (error - last_error) / dt;
 		}
 
-		float speed = error * gain.kp;
+		last_error = error;
+
+		if (integral > max_integral) integral = max_integral;
+		if (integral < -max_integral) integral = -max_integral;
+
+		float speed = proportional + integral * gain.ki + derivative;
 
 		if (speed > max_speed) speed = max_speed;
 		if (speed < -max_speed) speed = -max_speed;
@@ -83,13 +111,19 @@ void PositionPIDController::update(){
 
 		speed_pid_->setTarget(target_speed);
 	}
-
-	speed_pid_->update();
 }
 
 /* 積分、微分をリセット */
 void PositionPIDController::reset(){
-	target_speed = 0;
+	target_speed = 0.0f;
+	integral = 0.0f;
+
+	if (speed_pid_ != nullptr && speed_pid_->enc != nullptr) {
+		last_error = (float)(target - speed_pid_->enc->getAngle());
+	} else {
+		last_error = 0.0f;
+	}
+
 	speed_pid_->reset();
 }
 
