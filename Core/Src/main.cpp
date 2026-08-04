@@ -199,25 +199,25 @@ int main(void)
   SpeedPIDController speed_pid_(&m1, &m1);
   PositionPIDController position_pid_(&speed_pid_);
   m1.initPID(&speed_pid_);
-  position_pid_.setAllowError(100);
+  position_pid_.setAllowError(20);
   position_pid_.setInterval(10);
   position_pid_.setMaxAcceleration(50000);
-  position_pid_.setMaxSpeed(2000);
-  position_pid_.setPID(0.25f);
-  speed_pid_.setAllowError(30);
-  speed_pid_.setInterval(10);
-  speed_pid_.setMaxIntegral(2000.0f);
+  position_pid_.setMaxSpeed(2500);
+  position_pid_.setPID(1.0f, 0.0002f, 0.02f);
+  speed_pid_.setAllowError(0);
+  speed_pid_.setInterval(5);
+  speed_pid_.setMaxIntegral(5000.0f);
   speed_pid_.setMaxOutput(10000);
-  speed_pid_.setPID(0.089f, 0.234f, 0.011f);
+  speed_pid_.setPID(3.0f, 0.0002f, 0.02f);
   SpeedPIDTuner tuner(&speed_pid_, TuningMethod::CHR_0Percent);
 
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
 
-  position_pid_.setTarget(20000);
+  position_pid_.setTarget(884736);
   //tuner.start(1000.0f);
-  //speed_pid_.setTarget(3000);
+  //speed_pid_.setTarget(5000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -236,6 +236,9 @@ int main(void)
 			  position_pid_.update();
 			  pos = m1.getAngle();
 			  speed = m1.getSpeed();
+		  }
+		  if (ms_counter % 5 == 0){
+			  speed_pid_.update();
 		  }
 	  }
   }
