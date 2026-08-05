@@ -62,9 +62,6 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 volatile bool flag = false;
 int32_t ms_counter = 0;
-m2006_manager* manager_address = nullptr;
-int16_t speed;
-int32_t pos;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -119,24 +116,6 @@ int main(void)
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  // RotaryEncoder
-  //static RotaryEncoder encoder(&htim2);
-  //encoder.start();
-  //encoder.getAngle()で取得、タイマー割り込みで
-
-  /*
-   * MD4ch
-  static MD4ch_child motor1;
-  static MD4ch_child motor2;
-  std::vector<MD4ch_child*> motors = {&motor1, &motor2};
-  static MD_4ch manager(&hcan1, &motors, 0x301);
-  MD4ch_manager = &manager;
-  motor1.setMode(Mode::ENCODER);
-  motor2.setMode(Mode::ENCODER);
-  motor1.setOut(50);
-  motor2.setOut(50);
-  //manager.send()で送信、タイマー割り込みで
-  */
 
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
@@ -151,76 +130,9 @@ int main(void)
   filter.FilterActivation     = CAN_FILTER_ENABLE;
   HAL_CAN_ConfigFilter(&hcan1, &filter);
 
-  /*
-   * ロボマス
-  static m2006 m2006_1;
-  static m2006 m2006_2;
-  motor1_ad = &m2006_1;
-  motor2_ad = &m2006_2;
-  std::vector<m2006*> motors = {&m2006_1, &m2006_2};
-  static m2006_manager manager(&motors, &hcan1);
-  M2006_manager = &manager;
-
-  m2006_1.setInterval(10);
-  m2006_1.setMaxIntegral(1000);
-  m2006_1.setPID(6.0, 0.005, 0.1);
-  m2006_2.setInterval(10);
-  m2006_2.setMaxIntegral(1000);
-  m2006_2.setPID(6.0, 0.005, 0.1);
-
-  m2006_1.move(1000);
-  m2006_2.move(-1000);
-  // タイマー割り込みでmanager.sendtoCAN(); manager.updatePID();
-  //　CANの受信の中でM2006_manager.updatefromCAN(rxData, rxHeader.StdId);
-  */
-
-  /*
-   * PID
-  PID pid(&m2006_1, &m2006_1);
-  pid.setAllowError(20);
-  pid.setInterval(10);
-  pid.setMaxIntegral(1000);
-  pid.setMaxOutput(3000);
-  pid.setPID(0.3, 0.1, 0.00001);
-  pid.setTarget(8192);
-  // タイマー割り込みでpid.calculatePID();
-  */
-
-  /*
-   * ESC
-  ESC esc(&htim4, TIM_CHANNEL_1);
-  esc.setMax(100); //これはタイマー割り込みの前に行う
-  esc.move(100);
-  */
-
-  m2006 m1;
-  std::vector<m2006*> m2006s = {&m1};
-  m2006_manager manager(&m2006s, &hcan1);
-  manager_address = &manager;
-  SpeedPIDController speed_pid_(&m1, &m1);
-  PositionPIDController position_pid_(&speed_pid_);
-  m1.initPID(&speed_pid_);
-  position_pid_.setAllowError(20);
-  position_pid_.setInterval(10);
-  position_pid_.setMaxAcceleration(50000);
-  position_pid_.setMaxSpeed(2500);
-  position_pid_.setPID(1.0f, 0.0002f, 0.02f);
-  speed_pid_.setAllowError(0);
-  speed_pid_.setInterval(5);
-  speed_pid_.setMaxIntegral(5000.0f);
-  speed_pid_.setMaxOutput(10000);
-  speed_pid_.setPID(3.0f, 0.0002f, 0.02f);
-  SpeedPIDTuner tuner(&speed_pid_, TuningMethod::CHR_0Percent);
-  PositionPIDTuner postuner(&position_pid_);
-
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
-
-  //postuner.start(0.18f, 1000);
-  //position_pid_.setTarget(884736);
-  //tuner.start(1000.0f);
-  //speed_pid_.setTarget(5000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -231,19 +143,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  if (flag){
-		  //tuner.update1ms();
-		  postuner.update1ms();
-		  manager.sendtoCAN();
-		  flag = false;
 
-		  if (ms_counter % 10 == 0){
-			  //position_pid_.update();
-			  pos = m1.getAngle();
-			  speed = m1.getSpeed();
-		  }
-		  if (ms_counter % 5 == 0){
-			  speed_pid_.update();
-		  }
 	  }
   }
   /* USER CODE END 3 */
