@@ -33,6 +33,8 @@
 #include <ESC.h>
 #include <Servo.h>
 
+#include "Shooter.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,7 +44,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//Shooter設定用
+#define SHOOTER_ROOT_MAX 100
+#define SHOOTER_SERVO_0 200
+#define SHOOTER_SERVO_180 2000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -116,7 +121,16 @@ int main(void)
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  MD4ch_child shooter_root; //根元のモーター
+  ESC shooter_tip(&htim4, TIM_CHANNEL_1); //先端のESC
+  Servo shooter_servo(&htim4, TIM_CHANNEL_2); //先端のサーボ
+  shooter_tip.setMax(SHOOTER_ROOT_MAX);
+  shooter_servo.setting(SHOOTER_SERVO_0, SHOOTER_SERVO_180);
 
+  std::vector<MD4ch_child*> MD4ch_childs = { &shooter_root };
+
+  MD_4ch MD4ch_manager(&hcan1, &MD4ch_childs, 0x302);
+  Shooter shooter(&shooter_root, &shooter_tip, &shooter_servo);
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -132,7 +146,7 @@ int main(void)
 
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
-  HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+  //HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -142,9 +156,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (flag){
-
-	  }
+	  shooter.move_ESC();
+	  shooter.move_Motor();
+	  shooter.open_servo();
+	  shooter.close_servo();
+	  shooter.stop_Motor();
+	  shooter.stop_ESC();
   }
   /* USER CODE END 3 */
 }
@@ -368,6 +385,10 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM4_Init 2 */
 
   /* USER CODE END TIM4_Init 2 */
@@ -443,11 +464,7 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 	uint8_t rxData[8];
 
 	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData) == HAL_OK){
-		if (rxHeader.StdId >= 0x201 && rxHeader.StdId <= 0x208) {
-			if (manager_address != nullptr){
-				manager_address->updatefromCAN(rxData, rxHeader.StdId);
-			}
-		}
+
 	}
 }
 
