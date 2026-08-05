@@ -26,6 +26,7 @@
 #include <MD4ch_child.h>
 #include <MD4ch.h>
 #include <PositionPIDController.h>
+#include <PositionPIDTuner.h>
 #include <SpeedPIDController.h>
 #include <SpeedPIDTuner.h>
 #include <RotaryEncoder.h>
@@ -210,12 +211,14 @@ int main(void)
   speed_pid_.setMaxOutput(10000);
   speed_pid_.setPID(3.0f, 0.0002f, 0.02f);
   SpeedPIDTuner tuner(&speed_pid_, TuningMethod::CHR_0Percent);
+  PositionPIDTuner postuner(&position_pid_);
 
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
 
-  position_pid_.setTarget(884736);
+  //postuner.start(0.18f, 1000);
+  //position_pid_.setTarget(884736);
   //tuner.start(1000.0f);
   //speed_pid_.setTarget(5000);
   /* USER CODE END 2 */
@@ -229,11 +232,12 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  if (flag){
 		  //tuner.update1ms();
+		  postuner.update1ms();
 		  manager.sendtoCAN();
 		  flag = false;
 
 		  if (ms_counter % 10 == 0){
-			  position_pid_.update();
+			  //position_pid_.update();
 			  pos = m1.getAngle();
 			  speed = m1.getSpeed();
 		  }
