@@ -18,7 +18,6 @@ public:
 	virtual ~m2006_manager();
 
 	void sendtoCAN();
-	void update(); //入っているm2006を全てPIDを計算
 	void updatefromCAN(uint8_t data[8], uint32_t id);
 private:
 	CAN_HandleTypeDef* hcan;

@@ -9,8 +9,6 @@
 
 /*　m2006　*/
 m2006::m2006()
-: targetCurrent(0), max_current(16000), targetSpeed(0), maxSpeed(0), speed(0), ampere(0),
-  temp(0), totalAngle(0), lastAngle(0), locked(false), startFlag(true)
 {
 	// TODO Auto-generated constructor stub
 
@@ -20,15 +18,10 @@ m2006::~m2006() {
 	// TODO Auto-generated destructor stub
 }
 
-void m2006::initPID(SpeedPIDController* _speed_pid_){
-	speed_pid_ = _speed_pid_;
-}
-
 /* 目標出力の設定
  * 的確なスピードを変更したい場合はSpeedPIDControllerを使う */
 void m2006::move(int16_t _out){
 	if (locked) return;
-	if (speed_pid_ == nullptr) return;
 	targetCurrent = _out;
 }
 
@@ -40,13 +33,6 @@ int32_t m2006::getAngle(){
 /* 今の角度を0にする */
 void m2006::setZero(){
 	totalAngle = 0;
-}
-
-void m2006::update(){
-	if (locked) return;
-	if (speed_pid_ == nullptr) return;
-
-	speed_pid_->update();
 }
 
 /* CANからのデータから取得 managerから呼び出してもらう */

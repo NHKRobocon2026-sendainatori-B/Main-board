@@ -31,7 +31,6 @@ public:
 	m2006();
 	virtual ~m2006();
 
-	void initPID(SpeedPIDController* _speed_pid_);
 	int32_t getAngle() override;
 	void setZero() override;
 	void move(int16_t _out) override;
@@ -43,27 +42,23 @@ public:
 	int16_t getAmpere() {return ampere;};
 	int8_t getTemp() {return temp;};
 
-	void update();
-
 	void lock() override;
 	void unlock() override;
 
 private:
 
-	SpeedPIDController* speed_pid_ = nullptr;
+	int16_t targetCurrent = 0; //出力
+	int32_t max_current = 0;
+	int16_t targetSpeed = 0; // 目標速度を保持する変数
+	int16_t maxSpeed = 0; //出せる最大速度、負の値はこれを負にする
+	int16_t speed = 0; // 現在の回転速度(rpm)
+	int16_t ampere = 0; //電流を入れる
+	int8_t temp = 0; //温度を入れる
+	int32_t totalAngle = 0;
+	int16_t lastAngle = 0; //前回の角度を格納
 
-	int16_t targetCurrent; //出力
-	int32_t max_current;
-	int16_t targetSpeed; // 目標速度を保持する変数
-	int16_t maxSpeed; //出せる最大速度、負の値はこれを負にする
-	int16_t speed; // 現在の回転速度(rpm)
-	int16_t ampere; //電流を入れる
-	int8_t temp; //温度を入れる
-	int32_t totalAngle;
-	int16_t lastAngle; //前回の角度を格納
-
-	bool locked;
-	bool startFlag;
+	bool locked = false;
+	bool startFlag = true;
 };
 
 #endif /* INC_COMPONENT_M2006_H_ */
