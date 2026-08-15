@@ -24,9 +24,9 @@ public:
 private:
 	TIM_HandleTypeDef* tim_handle;
 	uint16_t tim_channel;
-	uint16_t maxOut;
+	uint16_t maxOut = 0;
 
-	bool locked;
+	bool locked = true;
 };
 
 #endif /* INC_COMPONENT_ESC_H_ */

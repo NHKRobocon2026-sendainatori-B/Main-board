@@ -8,7 +8,7 @@
 #include <SpeedPIDTuner.h>
 
 SpeedPIDTuner::SpeedPIDTuner(SpeedPIDController* _target, TuningMethod _method)
-: target(_target), method(_method), state(State::Idle)
+: target(_target), method(_method)
 {
 	// TODO Auto-generated constructor stub
 

@@ -63,13 +63,6 @@ void m2006_manager::sendtoCAN() {
 	}
 }
 
-/* PIDを計算 一定間隔で呼び出す */
-void m2006_manager::update(){
-	for (auto data : *children){
-		data->update();
-	}
-}
-
 /* CANからの情報を格納 dataとidをそのまま入れて */
 void m2006_manager::updatefromCAN(uint8_t data[8], uint32_t id){
 	int32_t idx = id - 0x201;

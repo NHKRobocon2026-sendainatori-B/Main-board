@@ -9,7 +9,7 @@
 
 /*サーボのプログラム、これの後絶対settingを呼び出して*/
 Servo::Servo(TIM_HandleTypeDef* _tim_handle, uint16_t _tim_channel)
-: tim_handle(_tim_handle), tim_channel(_tim_channel), locked(true)
+: tim_handle(_tim_handle), tim_channel(_tim_channel)
 {
 	// TODO Auto-generated constructor stub
 	HAL_TIM_PWM_Start(tim_handle, tim_channel);

@@ -49,7 +49,7 @@ public:
 private:
 	SpeedPIDController* target;
 	TuningMethod method;
-	State state;
+	State state = State::Idle;
 
 	int32_t last_angle = 0; //速度計測用
 
