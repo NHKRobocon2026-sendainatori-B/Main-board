@@ -27,7 +27,7 @@ private:
 	uint16_t out0; //0度の時の出力
 	uint16_t out180; //180度の出力
 
-	bool locked;
+	bool locked = true;
 };
 
 #endif /* INC_COMPONENT_SERVO_H_ */

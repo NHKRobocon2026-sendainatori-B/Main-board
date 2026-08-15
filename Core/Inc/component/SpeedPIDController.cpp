@@ -11,7 +11,7 @@
 SpeedPIDController::SpeedPIDController(Actuator* _act, Encoder* _enc)
 : act(_act), enc(_enc), target(0),
   max_integral(10.0f), integral(0.0f), last_error(0.0f), dt(0.01f), allowError(10), max_output(4096),
-  locked(false), effective(true), out(0)
+  locked(false), effective(true)
 {
 	// TODO Auto-generated constructor stub
 
@@ -102,7 +102,6 @@ void SpeedPIDController::update(){
 	if (output < -max_output) output = -max_output;
 
 	act->move((int16_t)output);
-	out = (int16_t)output;
 
 	last_angle = now_angle;
 }

@@ -9,7 +9,6 @@
 
 /*　作ってもらったMDの子 目標値の設定はこっちで　*/
 MD4ch_child::MD4ch_child()
-: mode(Mode::STOP), out(0), locked(false)
 {
 	// TODO Auto-generated constructor stub
 

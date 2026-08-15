@@ -64,6 +64,5 @@ void m2006::lock(){
 
 /* アンロック */
 void m2006::unlock(){
-	speed_pid_->reset();
 	locked = false;
 }
