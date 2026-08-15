@@ -45,8 +45,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 //Shooter設定用
-#define SHOOTER_ROOT_MAX 100
-#define SHOOTER_SERVO_0 200
+#define SHOOTER_SERVO_0 1000
 #define SHOOTER_SERVO_180 2000
 /* USER CODE END PD */
 
@@ -124,7 +123,7 @@ int main(void)
   MD4ch_child shooter_root; //根元のモーター
   ESC shooter_tip(&htim4, TIM_CHANNEL_1); //先端のESC
   Servo shooter_servo(&htim4, TIM_CHANNEL_2); //先端のサーボ
-  shooter_tip.setMax(SHOOTER_ROOT_MAX);
+  //shooter_tip.setMax(50);
   shooter_servo.setting(SHOOTER_SERVO_0, SHOOTER_SERVO_180);
 
   std::vector<MD4ch_child*> MD4ch_childs = { &shooter_root };
@@ -146,7 +145,10 @@ int main(void)
 
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
-  //HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+  //ESC及びサーボをデバッグで回す際、割り込みは無効に
+  HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+  bool moved = true;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -156,12 +158,29 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  /*
+	  ESC完了！
 	  shooter.move_ESC();
-	  shooter.move_Motor();
-	  shooter.open_servo();
-	  shooter.close_servo();
-	  shooter.stop_Motor();
 	  shooter.stop_ESC();
+	  */
+	  /*
+	  サーボ再調整
+	  shooter_servo.move(0);
+	  shooter_servo.move(50);
+	  */
+	  /*
+	   * モーター、速すぎだ
+	  if (flag){
+		  if (ms_counter % 500 == 0){
+			  MD4ch_manager.send();
+		  }
+		  if (ms_counter > 2000 && moved){
+		  	  shooter.move_Motor();
+		  	  moved = false;
+		  }
+		  flag = false;
+	  }
+	  */
   }
   /* USER CODE END 3 */
 }

@@ -7,8 +7,8 @@
 
 #include "Shooter.h"
 
-#define MOTOR_OUT 300 //モーターの出力、絶対変更
-#define ESC_OUT 5 //ESCの出力、絶対変更
+#define MOTOR_OUT 500 //モーターの出力、絶対変更
+#define ESC_OUT 99 //ESCの出力、絶対変更
 #define SERVO_ANGLE 120 //サーボのアングル、絶対変更
 
 Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
