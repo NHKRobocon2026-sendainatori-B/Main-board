@@ -33,9 +33,9 @@ public:
 	void unlock();
 
 private:
-	Mode mode;
-	int16_t out;
-	bool locked;
+	Mode mode = Mode::OPENLOOP;
+	int16_t out = 0;
+	bool locked = false;
 };
 
 

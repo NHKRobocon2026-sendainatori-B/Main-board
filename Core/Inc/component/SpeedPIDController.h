@@ -39,8 +39,6 @@ public:
 	void update();
 	void reset();
 
-	int16_t getOutput() { return out; };
-
 	void enable();
 	void disable();
 
@@ -51,27 +49,24 @@ public:
 	Encoder* enc;
 
 private:
-	int32_t target;
+	int32_t target = 0;
 
 	PIDgain gain = {
 			.kp = 0.0f,
 			.ki = 0.0f,
 			.kd = 0.0f
 	};
-	float max_integral;
-	float integral;
-	float last_error;
-	float dt;
-	int16_t allowError; //許容誤差
-	int16_t max_output;
+	float max_integral = 10.0f;
+	float integral = 0.0f;
+	float last_error = 0.0f;
+	float dt = 0.01f;
+	int16_t allowError = 10; //許容誤差
+	int16_t max_output = 4096;
 	int32_t last_angle = 0;
 	float pulse = 8192.0f;
 
-	bool locked;
-	bool startFlag;
-	bool effective;
-
-	int16_t out;
+	bool locked = false;
+	bool effective = false;
 };
 
 #endif /* INC_COMPONENT_SPEEDPIDCONTROLLER_H_ */

@@ -40,8 +40,8 @@ public:
 	SpeedPIDController* speed_pid_;
 private:
 
-	int32_t target;
-	int16_t target_speed; //現在の出力
+	int32_t target = 0;
+	int16_t target_speed = 0; //現在の出力
 	int32_t max_acceleration = 100; //最大加速
 
 	PIDgain gain = {
@@ -51,16 +51,13 @@ private:
 	};
 	float max_integral = 1000.0f;
 	float integral = 0.0f;
-	int16_t allowError; //許容誤差
-	int16_t max_speed;
+	int16_t allowError = 10; //許容誤差
+	int16_t max_speed = 4096;
 	int32_t last_error = 0;
 	float dt = 0.01f;
 
-	bool locked;
-	bool startFlag;
-	bool effective;
-
-	int16_t out;
+	bool locked = false;
+	bool effective = true;
 };
 
 #endif /* INC_COMPONENT_POSITIONPIDCONTROLLER_H_ */

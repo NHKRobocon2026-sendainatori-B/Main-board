@@ -10,7 +10,7 @@
 /*ESCのプログラム、この後絶対setMaxを呼び出して
  * PWMが1増えると1μ秒かわるように調整必要*/
 ESC::ESC(TIM_HandleTypeDef* _tim_handle, uint16_t _tim_channel)
-: tim_handle(_tim_handle), tim_channel(_tim_channel), maxOut(0), locked(true)
+: tim_handle(_tim_handle), tim_channel(_tim_channel)
 {
 	// TODO Auto-generated constructor stub
 	HAL_TIM_PWM_Start(tim_handle, tim_channel);
