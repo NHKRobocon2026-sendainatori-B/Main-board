@@ -18,8 +18,8 @@ public:
 	Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, m2006* importer_upper_, m2006* importer_below_);
 	virtual ~Loader();
 
-	void shooterMove(bool move);
-	bool shooterInterrupt();
+	bool shooterMove(bool move);
+	void shooterInterrupt();
 	bool loadbullet();
 
 	void update1ms();

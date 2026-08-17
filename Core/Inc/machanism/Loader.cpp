@@ -50,6 +50,8 @@ void Loader::update1ms(){
 		case State::DESK_LOAD:
 			bulletUpdate();
 			break;
+		case State::IBLE:
+			break;
 		}
 }
 
