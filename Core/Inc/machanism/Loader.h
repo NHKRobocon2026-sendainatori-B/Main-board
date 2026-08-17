@@ -18,21 +18,41 @@ public:
 	Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, m2006* importer_upper_, m2006* importer_below_);
 	virtual ~Loader();
 
+	void shooterMove(bool move);
+	bool shooterInterrupt();
+	bool loadbullet();
+
+	void update1ms();
+
 	void lock();
 	void unlock();
 
 private:
+	void shooterUpdate();
+	void bulletUpdate();
+
 	Servo* shovel_;
 	MD4ch_child* arm_;
 	MD4ch_child* elevator_;
 	m2006* importer_upper_;
 	m2006* importer_below_;
 
+	int32_t ms_counter = 0;
+	int32_t flag_counter = 0;
+
 	enum State {
 		IBLE,
-		SHOOTER_LOAD,
+		SHOOTER_MOVE,
 		DESK_LOAD
-	} state;
+	} state = State::IBLE;
+
+	enum ShooterState {
+
+	} shooter;
+
+	enum BulletState {
+
+	} bullet;
 
 	bool locked = false;
 };
