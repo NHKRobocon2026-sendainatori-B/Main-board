@@ -26,6 +26,14 @@ public:
         return state_ && state_->ready;
     }
 
+    bool is_success() const {
+        return is_ready() && (state_->value == true);
+    }
+
+    bool is_failed() const {
+        return is_ready() && (state_->value == false);
+    }
+
     T get() {
         if (!state_) return T{};
         state_->ready = false;
