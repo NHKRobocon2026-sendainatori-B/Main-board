@@ -8,8 +8,7 @@
 #include <PositionPIDController.h>
 
 PositionPIDController::PositionPIDController(SpeedPIDController* speed_pid_)
-: speed_pid_(speed_pid_), target(0), target_speed(0), allowError(10), max_speed(4096),
-  locked(false), effective(true)
+: speed_pid_(speed_pid_)
 {
 	// TODO Auto-generated constructor stub
 }

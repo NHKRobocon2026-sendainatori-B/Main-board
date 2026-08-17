@@ -9,9 +9,7 @@
 
 //speed(速度制御)を扱う
 SpeedPIDController::SpeedPIDController(Actuator* _act, Encoder* _enc)
-: act(_act), enc(_enc), target(0),
-  max_integral(10.0f), integral(0.0f), last_error(0.0f), dt(0.01f), allowError(10), max_output(4096),
-  locked(false), effective(true)
+: act(_act), enc(_enc)
 {
 	// TODO Auto-generated constructor stub
 
