@@ -18,6 +18,8 @@ public:
 	Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo);
 	virtual ~Shooter();
 
+	bool moveShooter(bool move);
+
 	void move_Motor();
 	void stop_Motor();
 	void move_ESC();
@@ -39,7 +41,8 @@ private:
 
 	uint16_t counter; //フォトインタラプタの割り込みカウンタ
 
-	bool locked;
+	bool moving = false;
+	bool locked = false;
 };
 
 #endif /* INC_MACHANISM_SHOOTER_H_ */

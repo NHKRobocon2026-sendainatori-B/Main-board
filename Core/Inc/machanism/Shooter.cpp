@@ -22,6 +22,13 @@ Shooter::~Shooter() {
 	// TODO Auto-generated destructor stub
 }
 
+bool Shooter::moveShooter(bool move){
+	//装填のモード変更
+	//もし失敗したら下のtrueを変化
+	moving = move;
+	return true;
+}
+
 void Shooter::move_Motor(){
 	if (locked) return;
 	motor->setOut(MOTOR_OUT);
