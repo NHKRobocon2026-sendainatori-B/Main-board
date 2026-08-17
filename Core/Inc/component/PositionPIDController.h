@@ -37,6 +37,10 @@ public:
 	void lock();
 	void unlock();
 
+	bool isTargetReached() const {
+		return (std::fabs(last_error) <= allowError);
+	}
+
 	SpeedPIDController* speed_pid_;
 private:
 
