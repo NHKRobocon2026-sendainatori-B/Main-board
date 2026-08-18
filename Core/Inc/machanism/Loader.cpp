@@ -114,14 +114,14 @@ void Loader::shooterUpdate(){
 		if (!futures[SHOOTERARMADDRESS].is_ready() && (ms_counter - flag_counters[SHOOTERARMADDRESS]) > SHOOTERARMSECONDS){
 			arm_->setOut(0);
 			futures[SHOOTERARMADDRESS].clear();
-			promises[SHOOTERARMADDRESS].promise.set_sucess(true);
+			promises[SHOOTERARMADDRESS].promise.set_success(true);
 		}
 	}
 	if (futures[SHOOTERUPPERADDRESS].valid()){
 		if (!futures[SHOOTERUPPERADDRESS].is_ready() && (ms_counter - flag_counters[SHOOTERUPPERADDRESS]) > SHOOTERUPPERSECONDS) {
 			elevator_->setOut(0);
 			futures[SHOOTERUPPERADDRESS].clear();
-			promises[SHOOTERUPPERADDRESS].promise.set_sucess(true);
+			promises[SHOOTERUPPERADDRESS].promise.set_success(true);
 		}
 	}
 }
@@ -136,7 +136,7 @@ void Loader::bulletUpdate(){
 		if (!futures[id].is_ready() && (ms_counter - flag_counters[id]) > promises[id].time){
 			//止めて次の物を動かす
 			futures[id].clear();
-			promises[id].promise.set_sucess(true);
+			promises[id].promise.set_success(true);
 			size_t next = id + 1;
 			if (next == futures.size()){
 				state = State::IDLE;
