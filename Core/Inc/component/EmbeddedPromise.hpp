@@ -16,7 +16,7 @@ class Future {
 public:
     struct SharedState {
         volatile bool ready = false;
-        bool sucess = false;
+        bool success = false;
         T value{};
     };
 
