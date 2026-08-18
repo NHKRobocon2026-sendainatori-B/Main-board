@@ -90,7 +90,7 @@ public:
         return Future<T>(state_);
     }
 
-    void set_sucess(const T& val = T{}) {
+    void set_success(const T& val = T{}) {
         if (state_) {
             state_->value = val;
             state_->sucess = true;
