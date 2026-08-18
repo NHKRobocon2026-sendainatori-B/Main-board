@@ -49,10 +49,10 @@ private:
 	std::map<uint8_t, DeskPromise> promises;
 
 	enum State {
-		IBLE,
+		IDLE,
 		SHOOTER_MOVE,
 		DESK_LOAD
-	} state = State::IBLE;
+	} state = State::IDLE;
 
 	bool locked = false;
 };

@@ -74,7 +74,7 @@ bool Loader::shooterMove(bool move){
 		futures[SHOOTERUPPERADDRESS].clear();
 		futures[SHOOTERARMADDRESS].clear();
 	}
-	state = (move) ? State::SHOOTER_MOVE : State::IBLE;
+	state = (move) ? State::SHOOTER_MOVE : State::IDLE;
 	return true;
 }
 
@@ -139,7 +139,7 @@ void Loader::bulletUpdate(){
 			promises[id].promise.set_sucess(true);
 			size_t next = id + 1;
 			if (next == futures.size()){
-				state = State::IBLE;
+				state = State::IDLE;
 				elevator_->setOut(0);
 				return;
 			}
