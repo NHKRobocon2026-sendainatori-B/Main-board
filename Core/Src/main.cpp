@@ -66,6 +66,7 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 volatile bool flag = false;
 int32_t ms_counter = 0;
+int16_t intrrupt_count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -130,6 +131,7 @@ int main(void)
 
   MD_4ch MD4ch_manager(&hcan1, &MD4ch_childs, 0x302);
   Shooter shooter(&shooter_root, &shooter_tip, &shooter_servo);
+  shooter.init();
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -146,36 +148,43 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   //ESC及びサーボをデバッグで回す際、割り込みは無効に
-  HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+  //HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
   bool moved = true;
 
+  //モーター以外の場合止めて
+  //shooter.move_Motor();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  /*
-	  ESC完了！
+
+	  //ESC完了！
+
 	  shooter.move_ESC();
 	  shooter.stop_ESC();
-	  */
+
+
+
 	  /*
-	  サーボ再調整
-	  shooter_servo.move(0);
-	  shooter_servo.move(50);
+	  //サーボ再調整
+	  shooter.open_servo();
+	  shooter.close_servo();
 	  */
+
 	  /*
-	   * モーター、速すぎだ
+	  //モーター
 	  if (flag){
 		  if (ms_counter % 500 == 0){
 			  MD4ch_manager.send();
 		  }
 		  if (ms_counter > 2000 && moved){
-		  	  shooter.move_Motor();
+		  	  shooter.stop_Motor();
 		  	  moved = false;
 		  }
 		  flag = false;
@@ -455,6 +464,7 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
@@ -462,6 +472,16 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pin : PD7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -484,6 +504,12 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
 	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData) == HAL_OK){
 
+	}
+}
+
+extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if (GPIO_Pin == GPIO_PIN_7){
+		intrrupt_count++;
 	}
 }
 
