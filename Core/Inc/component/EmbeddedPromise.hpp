@@ -34,6 +34,29 @@ public:
         return is_ready() && (state_->value == false);
     }
 
+    //bool以外の処理
+    //値を破壊せずに参照する（準備ができていればポインタ、未完了なら nullptr）
+    const T* peek() const {
+    	if (is_ready()) {
+    		return &(state_->value);
+    	}
+    	return nullptr;
+    }
+
+    //準備ができていればその値を返し、未完了ならデフォルト値を返す
+    T value_or(const T& default_val) const {
+    	if (is_ready()) {
+    		return state_->value;
+    	}
+    	return default_val;
+    }
+
+    //条件（ラムダ式など）を指定して成功判定を行う
+    template <typename Predicate>
+    bool is_success_where(Predicate pred) const {
+        return is_ready() && pred(state_->value);
+    }
+
     T get() {
         if (!state_) return T{};
         state_->ready = false;
