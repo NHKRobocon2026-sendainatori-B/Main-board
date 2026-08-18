@@ -11,6 +11,13 @@
 #define SHOOTERUPPEROUT 100 //上に少し動かすときの出力
 #define SHOOTERARMOUT 200 //射出に装填するモーターを動かすPWM
 #define SHOOTERARMSECONDS 200 //射出に装填するモーターを動かす時間
+#define LOADAPPDOWNOUT 100 //上下移動の速さ
+#define LOADAPPDOWNSECONDS 1000 //上下移動の時間
+#define LOADMOTOROUT 100 //外側へと動くモーターの速さ
+#define LOADMOTORSECONDS 500 //外側へと動くモーターの時間
+#define LOADSERVOOPEN 120 //サーボの開いた角度
+#define LOADSERVOCLOSE 0 //サーボの閉じた角度
+#define LOADSERVOSECONDS 300 //少しだけ待つように
 
 #define SHOOTERUPPERADDRESS 0
 #define SHOOTERARMADDRESS 1
@@ -33,23 +40,14 @@ Loader::Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, SpeedP
 : shovel_(shovel_), arm_(arm_), elevator_(elevator_), importer_upper_(importer_upper_), importer_below_(importer_below_)
 {
 	// TODO Auto-generated constructor stub
-	promises[SHOOTERUPPERADDRESS] = Promise<bool>(); //射出装填, 上にすこしずつ
-	promises[SHOOTERARMADDRESS] = Promise<bool>(); //射出装填, 交互にモーターを回す
-	promises[LOADDOWNERADDRESS] = Promise<bool>(); //弾丸装填, 下に移動
-	promises[LOADSERVOUPPADDRESS] = Promise<bool>(); //弾丸装填, サーボ上に
-	promises[LOADMOTOROUTADDRESS] = Promise<bool>(); //弾丸装填, モーターを外側に
-	promises[LOADSERVODOWNERADDRESS] = Promise<bool>(); //弾丸装填, サーボを下に
-	promises[LOADMOTORINADDRESS] = Promise<bool>(); //弾丸装填, モーターを内側に
-	promises[LOADUPPERADDRESS] = Promise<bool>(); //弾丸装填, 上に移動
-	//futureに入れる
-	futures[SHOOTERUPPERADDRESS] = promises[0].get_future();
-	futures[SHOOTERARMADDRESS] = promises[1].get_future();
-	futures[LOADDOWNERADDRESS] = promises[2].get_future();
-	futures[LOADSERVOUPPADDRESS] = promises[3].get_future();
-	futures[LOADMOTOROUTADDRESS] = promises[4].get_future();
-	futures[LOADSERVODOWNERADDRESS] = promises[5].get_future();
-	futures[LOADMOTORINADDRESS] = promises[6].get_future();
-	futures[LOADUPPERADDRESS] = promises[7].get_future();
+	promises[SHOOTERUPPERADDRESS] = {SHOOTERUPPERSECONDS, Promise<bool>()}; //射出装填, 上にすこしずつ
+	promises[SHOOTERARMADDRESS] = {SHOOTERARMSECONDS, Promise<bool>()}; //射出装填, 交互にモーターを回す
+	promises[LOADDOWNERADDRESS] = {LOADAPPDOWNSECONDS, Promise<bool>()}; //弾丸装填, 下に移動
+	promises[LOADSERVOUPPADDRESS] = {LOADSERVOSECONDS, Promise<bool>()}; //弾丸装填, サーボ上に
+	promises[LOADMOTOROUTADDRESS] = {LOADMOTORSECONDS, Promise<bool>()}; //弾丸装填, モーターを外側に
+	promises[LOADSERVODOWNERADDRESS] = {LOADSERVOSECONDS, Promise<bool>()}; //弾丸装填, サーボを下に
+	promises[LOADMOTORINADDRESS] = {LOADMOTORSECONDS, Promise<bool>()}; //弾丸装填, モーターを内側に
+	promises[LOADUPPERADDRESS] = {LOADAPPDOWNSECONDS, Promise<bool>()}; //弾丸装填, 上に移動
 
 	arm_->setMode(Mode::OPENLOOP);
 	importer_upper_->setPID(M2006KP, M2006KI, M2006KD);
@@ -70,20 +68,24 @@ Loader::~Loader() {
 
 /*shooterを動かすかを変更、もし机から雑巾を格納中ならfalseを返す*/
 bool Loader::shooterMove(bool move){
-	if (state == State::IBLE || state == State::SHOOTER_MOVE){
-		state = (move) ? State::SHOOTER_MOVE : State::IBLE;
-		return true;
-	} else {
-		return false;
+	if (state == State::DESK_LOAD) return false;
+	if (!move && state == State::SHOOTER_MOVE) {
+		//Shooter関連のfutureをクリア
+		futures[SHOOTERUPPERADDRESS].clear();
+		futures[SHOOTERARMADDRESS].clear();
 	}
+	state = (move) ? State::SHOOTER_MOVE : State::IBLE;
+	return true;
 }
 
 /*机からの装填*/
 bool Loader::loadbullet(){
 	if (state == State::SHOOTER_MOVE) return false;
 	state = State::DESK_LOAD;
-	flag_counters[SHOOTERARMADDRESS] = ms_counter;
-	promises[SHOOTERARMADDRESS].reset();
+	flag_counters[LOADDOWNERADDRESS] = ms_counter;
+	promises[LOADDOWNERADDRESS].promise.reset();
+	futures[LOADDOWNERADDRESS] = promises[LOADDOWNERADDRESS].promise.get_future();
+	elevator_->setOut(-LOADAPPDOWNOUT);
 	return true;
 }
 
@@ -92,12 +94,14 @@ void Loader::shooterInterrupt(bool elevate, bool direction){
 	if (state != State::SHOOTER_MOVE) return;
 	if (elevate) {
 		arm_->setOut(SHOOTERUPPEROUT);
-		promises[SHOOTERUPPERADDRESS].reset();
+		promises[SHOOTERUPPERADDRESS].promise.reset();
+		futures[SHOOTERUPPERADDRESS] = promises[SHOOTERUPPERADDRESS].promise.get_future();
 		flag_counters[SHOOTERUPPERADDRESS] = ms_counter;
 	} else {
 		int16_t out = (direction) ? SHOOTERARMOUT : -SHOOTERARMOUT;
 		arm_->setOut(out);
-		promises[SHOOTERARMADDRESS].reset();
+		promises[SHOOTERARMADDRESS].promise.reset();
+		futures[SHOOTERARMADDRESS] = promises[SHOOTERARMADDRESS].promise.get_future();
 		flag_counters[SHOOTERARMADDRESS] = ms_counter;
 	}
 }
@@ -106,13 +110,19 @@ void Loader::shooterInterrupt(bool elevate, bool direction){
 void Loader::shooterUpdate(){
 	if (state != State::SHOOTER_MOVE) return;
 	ms_counter += 10;
-	if (!futures[SHOOTERARMADDRESS].is_ready() && (ms_counter - flag_counters[SHOOTERARMADDRESS]) > SHOOTERARMSECONDS){
-		arm_->setOut(0);
-		promises[SHOOTERARMADDRESS].set_sucess(true);
+	if (futures[SHOOTERARMADDRESS].valid()){
+		if (!futures[SHOOTERARMADDRESS].is_ready() && (ms_counter - flag_counters[SHOOTERARMADDRESS]) > SHOOTERARMSECONDS){
+			arm_->setOut(0);
+			futures[SHOOTERARMADDRESS].clear();
+			promises[SHOOTERARMADDRESS].promise.set_sucess(true);
+		}
 	}
-	if (!futures[SHOOTERUPPERADDRESS].is_ready() && (ms_counter - flag_counters[SHOOTERUPPERADDRESS]) > SHOOTERUPPERSECONDS) {
-		elevator_->setOut(0);
-		promises[SHOOTERUPPERADDRESS].set_sucess(true);
+	if (futures[SHOOTERUPPERADDRESS].valid()){
+		if (!futures[SHOOTERUPPERADDRESS].is_ready() && (ms_counter - flag_counters[SHOOTERUPPERADDRESS]) > SHOOTERUPPERSECONDS) {
+			elevator_->setOut(0);
+			futures[SHOOTERUPPERADDRESS].clear();
+			promises[SHOOTERUPPERADDRESS].promise.set_sucess(true);
+		}
 	}
 }
 
@@ -120,7 +130,49 @@ void Loader::shooterUpdate(){
 void Loader::bulletUpdate(){
 	if (state != State::DESK_LOAD) return;
 	ms_counter += 10;
+	for (size_t id =  LOADDOWNERADDRESS; id < futures.size(); id++) {
+		if (!futures[id].valid()) continue;
 
+		if (!futures[id].is_ready() && (ms_counter - flag_counters[id]) > promises[id].time){
+			//止めて次の物を動かす
+			futures[id].clear();
+			promises[id].promise.set_sucess(true);
+			size_t next = id + 1;
+			if (next == futures.size()){
+				state = State::IBLE;
+				elevator_->setOut(0);
+				return;
+			}
+			promises[next].promise.reset();
+			futures[next] = promises[next].promise.get_future();
+			promises[next].time = ms_counter;
+			switch(next){
+			case LOADSERVOUPPADDRESS:
+				elevator_->setOut(0);
+				shovel_->move(LOADSERVOOPEN);
+				break;
+			case LOADMOTOROUTADDRESS:
+				importer_upper_->setTarget(-LOADMOTOROUT);
+				importer_below_->setTarget(LOADMOTOROUT);
+				break;
+			case LOADSERVODOWNERADDRESS:
+				importer_upper_->setTarget(0);
+				importer_upper_->setTarget(0);
+				shovel_->move(LOADSERVOCLOSE);
+				break;
+			case LOADMOTORINADDRESS:
+				importer_upper_->setTarget(LOADMOTOROUT);
+				importer_below_->setTarget(-LOADMOTOROUT);
+				break;
+			case LOADUPPERADDRESS:
+				importer_upper_->setTarget(0);
+				importer_below_->setTarget(0);
+				elevator_->setOut(LOADAPPDOWNOUT);
+				break;
+			}
+			break;
+		}
+	}
 }
 
 void Loader::lock(){

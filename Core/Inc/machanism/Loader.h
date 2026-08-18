@@ -16,6 +16,11 @@
 #include "SpeedPIDController.h"
 #include "EmbeddedPromise.hpp"
 
+struct DeskPromise {
+	int16_t time;
+	Promise<bool> promise;
+};
+
 class Loader {
 public:
 	Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, SpeedPIDController* importer_upper_, SpeedPIDController* importer_below_);
@@ -41,7 +46,7 @@ private:
 	std::array<uint32_t, 8> flag_counters;
 
 	std::array<Future<bool>, 8> futures;
-	std::map<uint8_t, Promise<bool>> promises;
+	std::map<uint8_t, DeskPromise> promises;
 
 	enum State {
 		IBLE,
