@@ -95,7 +95,7 @@ void Loader::shooterInterrupt(bool elevate, bool direction){
 		promises[SHOOTERUPPERADDRESS].reset();
 		flag_counters[SHOOTERUPPERADDRESS] = ms_counter;
 	} else {
-		int16_t out = (direction) ? SHOOTERLOADOUT : -SHOOTERLOADOUT;
+		int16_t out = (direction) ? SHOOTERARMOUT : -SHOOTERARMOUT;
 		arm_->setOut(out);
 		promises[SHOOTERARMADDRESS].reset();
 		flag_counters[SHOOTERARMADDRESS] = ms_counter;
@@ -108,11 +108,11 @@ void Loader::shooterUpdate(){
 	ms_counter += 10;
 	if (!futures[SHOOTERARMADDRESS].is_ready() && (ms_counter - flag_counters[SHOOTERARMADDRESS]) > SHOOTERARMSECONDS){
 		arm_->setOut(0);
-		promises[SHOOTERARMADDRESS].set_value(true);
+		promises[SHOOTERARMADDRESS].set_sucess(true);
 	}
 	if (!futures[SHOOTERUPPERADDRESS].is_ready() && (ms_counter - flag_counters[SHOOTERUPPERADDRESS]) > SHOOTERUPPERSECONDS) {
 		elevator_->setOut(0);
-		promises[SHOOTERUPPERADDRESS].set_value(true);
+		promises[SHOOTERUPPERADDRESS].set_sucess(true);
 	}
 }
 
