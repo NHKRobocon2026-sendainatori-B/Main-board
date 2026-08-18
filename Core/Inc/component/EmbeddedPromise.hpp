@@ -16,6 +16,7 @@ class Future {
 public:
     struct SharedState {
         volatile bool ready = false;
+        bool sucess = false;
         T value{};
     };
 
@@ -27,16 +28,40 @@ public:
     }
 
     bool is_success() const {
-        return is_ready() && (state_->value == true);
+        return is_ready() && (state_->success);
     }
 
     bool is_failed() const {
-        return is_ready() && (state_->value == false);
+        return is_ready() && (!state_->success);
+    }
+
+    //bool以外の処理
+    //値を破壊せずに参照する（準備ができていればポインタ、未完了なら nullptr）
+    const T* peek() const {
+    	if (is_ready()) {
+    		return &(state_->value);
+    	}
+    	return nullptr;
+    }
+
+    //準備ができていればその値を返し、未完了ならデフォルト値を返す
+    T value_or(const T& default_val) const {
+    	if (is_ready()) {
+    		return state_->value;
+    	}
+    	return default_val;
+    }
+
+    //条件（ラムダ式など）を指定して成功判定を行う
+    template <typename Predicate>
+    bool is_success_where(Predicate pred) const {
+        return is_ready() && pred(state_->value);
     }
 
     T get() {
         if (!state_) return T{};
         state_->ready = false;
+        state_->success = false;
         return state_->value;
     }
 
@@ -59,9 +84,18 @@ public:
         return Future<T>(state_);
     }
 
-    void set_value(const T& val) {
+    void set_sucess(const T& val = T{}) {
         if (state_) {
             state_->value = val;
+            state_->sucess = true;
+            state_->ready = true;
+        }
+    }
+
+    void set_failed(const T& val = T{}) {
+    	if (state_) {
+    		state_->value = val;
+            state_->success = false;
             state_->ready = true;
         }
     }
@@ -69,6 +103,7 @@ public:
     void reset() {
         if (state_) {
             state_->ready = false;
+            state_->sucess = false;
         }
     }
 
