@@ -18,6 +18,8 @@ public:
 	Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo);
 	virtual ~Shooter();
 
+	void init();
+
 	bool moveShooter(bool move);
 
 	void move_Motor();

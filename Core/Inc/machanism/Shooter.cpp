@@ -8,7 +8,8 @@
 #include "Shooter.h"
 
 #define MOTOR_OUT 1 //モーターの出力、絶対変更
-#define ESC_OUT 99 //ESCの出力、絶対変更
+#define ESC_OUT 100 //ESCの出力、絶対変更
+#define ESC_MAX 100
 #define SERVO_ANGLE 120 //サーボのアングル、絶対変更
 
 Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
@@ -20,6 +21,12 @@ Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
 
 Shooter::~Shooter() {
 	// TODO Auto-generated destructor stub
+}
+
+void Shooter::init(){
+	esc->setMax(ESC_MAX);
+	move_ESC();
+	stop_ESC();
 }
 
 bool Shooter::moveShooter(bool move){
@@ -49,12 +56,12 @@ void Shooter::stop_ESC(){
 
 void Shooter::open_servo(){
 	if (locked) return;
-	servo->move(SERVO_ANGLE);
+	servo->move(0);
 }
 
 void Shooter::close_servo(){
 	if (locked) return;
-	servo->move(0);
+	servo->move(SERVO_ANGLE);
 }
 
 void Shooter::Interrupt(){
