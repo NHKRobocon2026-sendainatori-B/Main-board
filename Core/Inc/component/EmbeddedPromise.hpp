@@ -69,6 +69,12 @@ public:
         return state_ != nullptr;
     }
 
+    //中身を消し、validを戻す
+    //後でpromise.resetが必須
+    void clear() {
+    	state_.reset();
+    }
+
 private:
     std::shared_ptr<SharedState> state_;
 };
