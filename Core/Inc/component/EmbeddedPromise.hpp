@@ -93,7 +93,7 @@ public:
     void set_success(const T& val = T{}) {
         if (state_) {
             state_->value = val;
-            state_->sucess = true;
+            state_->success = true;
             state_->ready = true;
         }
     }
@@ -109,7 +109,7 @@ public:
     void reset() {
         if (state_) {
             state_->ready = false;
-            state_->sucess = false;
+            state_->success = false;
         }
     }
 
