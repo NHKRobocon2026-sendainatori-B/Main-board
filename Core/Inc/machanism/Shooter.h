@@ -22,7 +22,7 @@ public:
 
 	bool moveShooter(bool move);
 
-	void move_Motor();
+	void move_Motor(int16_t out);
 	void stop_Motor();
 	void move_ESC();
 	void stop_ESC();
@@ -41,7 +41,9 @@ private:
 	ESC* esc; //端で雑巾をぐるぐる回す場所
 	Servo* servo; //雑巾を掴むサーボ
 
-	uint16_t counter; //フォトインタラプタの割り込みカウンタ
+	uint16_t counter = 0; //フォトインタラプタの割り込みカウンタ
+	bool start_flag = true; //スタートした際、本当に最初だけ
+	bool again_flag = false; //もう一度動き出す際無視しないと
 
 	bool moving = false;
 	bool locked = false;

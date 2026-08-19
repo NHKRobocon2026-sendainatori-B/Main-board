@@ -7,7 +7,9 @@
 
 #include "Shooter.h"
 
-#define MOTOR_OUT 1 //モーターの出力、絶対変更
+#define MOTOR_OUT 10 //モーターのノーマル出力、絶対変更
+#define LOAD_OUT 5 //装填時の速度
+#define AGAIN_OUT 1 //再スタートを待つ速度
 #define ESC_OUT 100 //ESCの出力、絶対変更
 #define ESC_MAX 100
 #define SERVO_ANGLE 120 //サーボのアングル、絶対変更
@@ -33,12 +35,16 @@ bool Shooter::moveShooter(bool move){
 	//装填のモード変更
 	//もし失敗したら下のtrueを変化
 	moving = move;
+	if (!move) {
+		again_flag = true;
+		move_Motor(AGAIN_OUT);
+	}
 	return true;
 }
 
-void Shooter::move_Motor(){
+void Shooter::move_Motor(int16_t out){
 	if (locked) return;
-	motor->setOut(MOTOR_OUT);
+	motor->setOut(out);
 }
 
 void Shooter::stop_Motor(){
@@ -65,10 +71,35 @@ void Shooter::close_servo(){
 }
 
 void Shooter::Interrupt(){
-	counter++;
-	if (counter % 3 == 0){
-		//何らかの動作
+	if (again_flag){
+		if (counter % 6 == 0) {
+			move_Motor(LOAD_OUT);
+			again_flag = false;
+		}
+	} else {
+		if (counter % 6 == 0) {
+			move_Motor(LOAD_OUT);
+		}
+		if (counter % 6 == 1) {
+			if (start_flag) {
+				open_servo();
+				start_flag = false;
+			}
+			//装填を上にあげる
+		}
+		if (counter % 6 == 2) {
+			close_servo();
+		}
+		if (counter % 6 == 3) {
+			move_ESC();
+			move_Motor(MOTOR_OUT);
+		}
+		if (counter % 6 == 5) {
+			open_servo();
+			stop_ESC();
+		}
 	}
+	counter++;
 }
 
 void Shooter::lock(){
