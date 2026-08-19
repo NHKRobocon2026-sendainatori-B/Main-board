@@ -26,8 +26,6 @@ Shooter::~Shooter() {
 }
 
 void Shooter::init(){
-	esc->setMax(ESC_MAX);
-	move_ESC();
 	stop_ESC();
 }
 
