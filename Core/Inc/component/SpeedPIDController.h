@@ -66,7 +66,7 @@ private:
 	float pulse = 8192.0f;
 
 	bool locked = false;
-	bool effective = false;
+	bool effective = true;
 };
 
 #endif /* INC_COMPONENT_SPEEDPIDCONTROLLER_H_ */
