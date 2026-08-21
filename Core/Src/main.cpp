@@ -67,6 +67,7 @@ UART_HandleTypeDef huart2;
 volatile bool flag = false;
 int32_t ms_counter = 0;
 int16_t intrrupt_count = 0;
+bool intrrupt_flag = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -132,6 +133,8 @@ int main(void)
   MD_4ch MD4ch_manager(&hcan1, &MD4ch_childs, 0x302);
   Shooter shooter(&shooter_root, &shooter_tip, &shooter_servo);
   shooter.init();
+  //雑巾射出用テスト
+  //shooter_tip.setMax(100);
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -150,9 +153,15 @@ int main(void)
   //ESC及びサーボをデバッグで回す際、割り込みは無効に
   //HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
   bool moved = true;
-
+  //shooter_root.setOut(-40);
+  //-25
+  //-40
   //モーター以外の場合止めて
-  //shooter.move_Motor();
+  //雑巾射出用テスト
+  /*
+  shooter.move_Motor();
+  shooter.move_ESC();
+  */
   /* USER CODE END 2 */
 
 
@@ -166,17 +175,17 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  //ESC完了！
-
+	  /*
 	  shooter.move_ESC();
 	  shooter.stop_ESC();
+	  */
 
 
 
-	  /*
 	  //サーボ再調整
 	  shooter.open_servo();
 	  shooter.close_servo();
-	  */
+
 
 	  /*
 	  //モーター
@@ -184,11 +193,25 @@ int main(void)
 		  if (ms_counter % 500 == 0){
 			  MD4ch_manager.send();
 		  }
-		  if (ms_counter > 2000 && moved){
-		  	  shooter.stop_Motor();
+		  if (ms_counter > 4000 && moved){
+			  shooter_root.setOut(0);
 		  	  moved = false;
 		  }
 		  flag = false;
+	  }
+	  */
+
+	  /*
+	  //雑巾射出用テスト
+	  if (intrrupt_flag){
+		  if (intrrupt_count == 3){
+			  shooter.open_servo();
+		  }
+		  if (intrrupt_count == 4){
+			  shooter.stop_ESC();
+			  shooter.stop_Motor();
+		  }
+		  intrrupt_flag = false;
 	  }
 	  */
   }
@@ -511,6 +534,7 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (GPIO_Pin == GPIO_PIN_7){
 		intrrupt_count++;
+		intrrupt_flag = true;
 	}
 }
 
