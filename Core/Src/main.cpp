@@ -134,7 +134,12 @@ int main(void)
   Shooter shooter(&shooter_root, &shooter_tip, &shooter_servo);
   shooter.init();
   //雑巾射出用テスト
-  //shooter_tip.setMax(100);
+  shooter.open_servo();
+  shooter_tip.setMax(100);
+  shooter.move_ESC();
+  shooter.stop_ESC();
+  shooter.close_servo();
+  HAL_Delay(1000);
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -151,17 +156,17 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   //ESC及びサーボをデバッグで回す際、割り込みは無効に
-  //HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+  HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
   bool moved = true;
   //shooter_root.setOut(-40);
   //-25
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-  /*
-  shooter.move_Motor();
+
   shooter.move_ESC();
-  */
+  //shooter.move_Motor(-25);
+
   /* USER CODE END 2 */
 
 
@@ -181,11 +186,11 @@ int main(void)
 	  */
 
 
-
+	  /*
 	  //サーボ再調整
 	  shooter.open_servo();
 	  shooter.close_servo();
-
+	  */
 
 	  /*
 	  //モーター
@@ -201,19 +206,25 @@ int main(void)
 	  }
 	  */
 
-	  /*
+
 	  //雑巾射出用テスト
+	  if (flag) {
+		  if (ms_counter % 500 == 0){
+			  MD4ch_manager.send();
+		  }
+		  flag = false;
+	  }
 	  if (intrrupt_flag){
 		  if (intrrupt_count == 3){
 			  shooter.open_servo();
 		  }
 		  if (intrrupt_count == 4){
 			  shooter.stop_ESC();
-			  shooter.stop_Motor();
+			  //shooter.stop_Motor();
 		  }
 		  intrrupt_flag = false;
 	  }
-	  */
+
   }
   /* USER CODE END 3 */
 }
