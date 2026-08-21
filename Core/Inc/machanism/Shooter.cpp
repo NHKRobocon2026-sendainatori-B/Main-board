@@ -7,9 +7,9 @@
 
 #include "Shooter.h"
 
-#define MOTOR_OUT 10 //モーターのノーマル出力、絶対変更
-#define LOAD_OUT 5 //装填時の速度
-#define AGAIN_OUT 1 //再スタートを待つ速度
+#define MOTOR_OUT -40 //モーターのノーマル出力、絶対変更
+#define LOAD_OUT -25 //装填時の速度
+#define AGAIN_OUT -25 //再スタートを待つ速度
 #define ESC_OUT 100 //ESCの出力、絶対変更
 #define ESC_MAX 100
 #define SERVO_ANGLE 120 //サーボのアングル、絶対変更
