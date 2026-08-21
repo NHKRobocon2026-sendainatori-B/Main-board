@@ -5,6 +5,11 @@
  *      Author: nika-
  */
 
+/*
+ * arm_ : 50
+ * elevator_ : 30
+ * */
+
 #include "Loader.h"
 
 #define SHOOTERUPPERSECONDS 100 //上に少し動かすときのミリ秒
