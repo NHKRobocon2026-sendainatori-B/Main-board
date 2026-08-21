@@ -12,7 +12,7 @@
 #define AGAIN_OUT -25 //再スタートを待つ速度
 #define ESC_OUT 100 //ESCの出力、絶対変更
 #define ESC_MAX 100
-#define SERVO_ANGLE 173 //サーボのアングル、絶対変更
+#define SERVO_ANGLE_CLOSE 179 //サーボのアングル、絶対変更
 #define SERVO_ANGLE_OPEN 20 //サーボのアングル開いたとき、絶対変更
 
 Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
@@ -66,7 +66,7 @@ void Shooter::open_servo(){
 
 void Shooter::close_servo(){
 	if (locked) return;
-	servo->move(SERVO_ANGLE);
+	servo->move(SERVO_ANGLE_CLOSE);
 }
 
 void Shooter::Interrupt(){

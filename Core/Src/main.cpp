@@ -165,7 +165,7 @@ int main(void)
   //雑巾射出用テスト
 
   shooter.move_ESC();
-  //shooter.move_Motor(-25);
+  shooter.move_Motor(-40);
 
   /* USER CODE END 2 */
 
@@ -220,7 +220,7 @@ int main(void)
 		  }
 		  if (intrrupt_count == 4){
 			  shooter.stop_ESC();
-			  //shooter.stop_Motor();
+			  shooter.stop_Motor();
 		  }
 		  intrrupt_flag = false;
 	  }
