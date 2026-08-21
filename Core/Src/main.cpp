@@ -62,6 +62,7 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 volatile bool flag = false;
 int32_t ms_counter = 0;
+m2006_manager* manager_address;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -133,6 +134,13 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+
+  MD4ch_child arm_;
+  std::vector<MD4ch_child*> motors = { &arm_ };
+
+  MD_4ch md_manager(&hcan1, &motors, 0x302);
+  arm_.setMode(Mode::OPENLOOP);
+  arm_.setOut(-30);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -143,7 +151,10 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  if (flag){
-
+		  if (ms_counter % 500 == 0){
+			  md_manager.send();
+		  }
+		  flag = false;
 	  }
   }
   /* USER CODE END 3 */
