@@ -144,16 +144,24 @@ int main(void)
 
   m2006 upper;
   SpeedPIDController speed_upper(&upper, &upper);
-  SpeedPIDTuner speed_tuner(&speed_upper, TuningMethod::CHR_0Percent);
-  speed_tuner.setAlpha(0.2);
-  speed_tuner.start(3000);
-  /*
   speed_upper.setInterval(5);
   speed_upper.setAllowError(300);
   speed_upper.setMaxIntegral(500);
-  speed_upper.setMaxOutput(2000);
-  */
+  speed_upper.setMaxOutput(500);
+  speed_upper.setPID(0.042f, 0.003f, 0.012f);
+
   m2006 downer;
+  SpeedPIDController speed_downer(&downer, &downer);
+  speed_downer.setInterval(5);
+  speed_downer.setAllowError(300);
+  speed_downer.setMaxIntegral(100);
+  speed_downer.setMaxOutput(600);
+  speed_downer.setPID(0.3f, 0.0, 0.006f);
+  speed_downer.setTarget(-2000);
+  /*
+  speed_tuner.setAlpha(0.2);
+  speed_tuner.start(500);
+  */
 
   std::vector<m2006*> m2006s = { &upper, &downer };
   m2006_manager m2006manager(&m2006s, &hcan1);
@@ -174,18 +182,30 @@ int main(void)
 	  //チューナー
 	  if (flag){
 	  	  if (ms_counter % 500 == 0) {
-	  	  	  m2006manager.send();
+	  	  	  m2006manager.sendtoCAN();
 	  	  }
 		  speed_tuner.update1ms();
 		  flag = false;
 	  }
 	  */
 
+	  //ロボマス
+	  if (flag){
+		  if (ms_counter % 500 == 0) {
+			  m2006manager.sendtoCAN();
+	  	  }
+		  if (ms_counter % 5 == 0) {
+			  speed_upper.update();
+			  speed_downer.update();
+		  }
+		  flag = false;
+	  }
 
+	  /*
 	  //サーボ
 	  servo_.move(50); //上の時
 	  servo_.move(170); //下の時
-
+	  */
 
 	  /*
 	  //モーター
