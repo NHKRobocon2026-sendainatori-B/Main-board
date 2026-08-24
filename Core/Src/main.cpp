@@ -136,11 +136,31 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
 
   MD4ch_child arm_;
+  Servo servo_(&htim4, TIM_CHANNEL_1);
+  servo_.setting(1000, 2000);
   std::vector<MD4ch_child*> motors = { &arm_ };
 
   MD_4ch md_manager(&hcan1, &motors, 0x302);
+
+  m2006 upper;
+  SpeedPIDController speed_upper(&upper, &upper);
+  SpeedPIDTuner speed_tuner(&speed_upper, TuningMethod::CHR_0Percent);
+  speed_tuner.setAlpha(0.2);
+  speed_tuner.start(3000);
+  /*
+  speed_upper.setInterval(5);
+  speed_upper.setAllowError(300);
+  speed_upper.setMaxIntegral(500);
+  speed_upper.setMaxOutput(2000);
+  */
+  m2006 downer;
+
+  std::vector<m2006*> m2006s = { &upper, &downer };
+  m2006_manager m2006manager(&m2006s, &hcan1);
+  manager_address = &m2006manager;
+
   arm_.setMode(Mode::OPENLOOP);
-  arm_.setOut(-30);
+  //arm_.setOut(-30);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -150,12 +170,32 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  /*
+	  //チューナー
+	  if (flag){
+	  	  if (ms_counter % 500 == 0) {
+	  	  	  m2006manager.send();
+	  	  }
+		  speed_tuner.update1ms();
+		  flag = false;
+	  }
+	  */
+
+
+	  //サーボ
+	  servo_.move(50); //上の時
+	  servo_.move(170); //下の時
+
+
+	  /*
+	  //モーター
 	  if (flag){
 		  if (ms_counter % 500 == 0){
 			  md_manager.send();
 		  }
 		  flag = false;
 	  }
+	  */
   }
   /* USER CODE END 3 */
 }
