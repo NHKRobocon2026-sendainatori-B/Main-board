@@ -26,8 +26,6 @@ ESC::~ESC() {
 void ESC::setMax(uint16_t _maxOut){
 	maxOut = _maxOut;
 	__HAL_TIM_SET_COMPARE(tim_handle, tim_channel, 1000);
-	HAL_Delay(2000);
-	__HAL_TIM_SET_COMPARE(tim_handle, tim_channel, 0);
 	locked = false;
 }
 
