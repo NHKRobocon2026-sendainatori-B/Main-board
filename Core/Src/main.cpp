@@ -144,24 +144,39 @@ int main(void)
 
   m2006 upper;
   SpeedPIDController speed_upper(&upper, &upper);
+  PositionPIDController position_upper(&speed_upper);
   speed_upper.setInterval(5);
   speed_upper.setAllowError(300);
-  speed_upper.setMaxIntegral(500);
-  speed_upper.setMaxOutput(500);
-  speed_upper.setPID(0.042f, 0.003f, 0.012f);
-
+  speed_upper.setMaxIntegral(100);
+  speed_upper.setMaxOutput(6000);
+  speed_upper.setPID(0.1281f, 0.01f, 0.0009184f);
+  position_upper.setInterval(10);
+  position_upper.setMaxAcceleration(50000);
+  position_upper.setMaxIntegral(100);
+  position_upper.setMaxSpeed(9000);
+  position_upper.setPID(0.018f, 0.001f, 0.0f);
+  //speed_upper.setTarget(4000);
+  //position_upper.setTarget(294912 * 3);
   m2006 downer;
   SpeedPIDController speed_downer(&downer, &downer);
+  PositionPIDController position_downer(&speed_downer);
   speed_downer.setInterval(5);
   speed_downer.setAllowError(300);
   speed_downer.setMaxIntegral(100);
-  speed_downer.setMaxOutput(600);
-  speed_downer.setPID(0.3f, 0.0, 0.006f);
-  speed_downer.setTarget(-2000);
+  speed_downer.setMaxOutput(6000);
+  speed_downer.setPID(0.1281f, 0.01f, 0.0009184f);
+  position_downer.setInterval(10);
+  position_downer.setMaxAcceleration(50000);
+  position_downer.setMaxIntegral(100);
+  position_downer.setMaxSpeed(9000);
+  position_downer.setPID(0.018f, 0.001f, 0.0f);
   /*
   speed_tuner.setAlpha(0.2);
   speed_tuner.start(500);
   */
+  position_upper.setTarget(294912 * 3);
+  position_downer.setTarget(294912 * 3);
+  //positiontuner.start(0.2f, 3000);
 
   std::vector<m2006*> m2006s = { &upper, &downer };
   m2006_manager m2006manager(&m2006s, &hcan1);
@@ -198,6 +213,11 @@ int main(void)
 			  speed_upper.update();
 			  speed_downer.update();
 		  }
+		  if (ms_counter % 10 == 0) {
+			  position_upper.update();
+			  position_downer.update();
+		  }
+		  //positiontuner.update1ms();
 		  flag = false;
 	  }
 
