@@ -104,11 +104,13 @@ void Shooter::Interrupt(){
 void Shooter::lock(){
 	motor->lock();
 	esc->lock();
+	servo->lock();
 	locked = true;
 }
 
 void Shooter::unlock(){
 	motor->unlock();
 	esc->unlock();
+	servo->unlock();
 	locked = false;
 }
