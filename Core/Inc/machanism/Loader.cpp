@@ -60,7 +60,7 @@ Loader::~Loader() {
 
 /*shooterを動かすかを変更、もし机から雑巾を格納中ならfalseを返す*/
 bool Loader::shooterMove(bool move){
-	if (locked) return;
+	if (locked) return false;
 	if (state == State::DESK_LOAD) return false;
 	if (!move && state == State::SHOOTER_MOVE) {
 		//Shooter関連のfutureをクリア
@@ -73,7 +73,7 @@ bool Loader::shooterMove(bool move){
 
 /*机からの装填*/
 bool Loader::loadbullet(){
-	if (locked) return;
+	if (locked) return false;
 	if (state == State::SHOOTER_MOVE) return false;
 	state = State::DESK_LOAD;
 	flag_counters[LOADDOWNERADDRESS] = ms_counter;
