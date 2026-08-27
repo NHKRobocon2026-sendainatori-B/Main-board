@@ -234,8 +234,18 @@ void Loader::bulletUpdate(){
 
 void Loader::lock(){
 	locked = true;
+	shovel_->lock();
+	arm_->lock();
+	elevator_->lock();
+	importer_upper_->lock();
+	importer_below_->lock();
 }
 
 void Loader::unlock(){
 	locked = false;
+	shovel_->unlock();
+	arm_->unlock();
+	elevator_->unlock();
+	importer_upper_->unlock();
+	importer_below_->unlock();
 }
