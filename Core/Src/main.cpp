@@ -120,15 +120,6 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  MD4ch_child arm_;
-  MD4ch_child elevator_;
-  Servo servo_(&htim4, TIM_CHANNEL_1);
-  servo_.setting(1000, 2000);
-  /*
-  servo_.move(0);
-  servo_.move(130);
-  */
-
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -145,6 +136,11 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+
+  MD4ch_child arm_;
+  MD4ch_child elevator_;
+  Servo servo_(&htim4, TIM_CHANNEL_1);
+
   std::vector<MD4ch_child*> motors = { &arm_, &elevator_};
 
   MD_4ch md_manager(&hcan1, &motors, 0x301);
@@ -152,31 +148,11 @@ int main(void)
   m2006 upper;
   SpeedPIDController speed_upper(&upper, &upper);
   PositionPIDController position_upper(&speed_upper);
-  speed_upper.setInterval(5);
-  speed_upper.setAllowError(300);
-  speed_upper.setMaxIntegral(100);
-  speed_upper.setMaxOutput(6000);
-  speed_upper.setPID(0.1281f, 0.01f, 0.0009184f);
-  position_upper.setInterval(10);
-  position_upper.setMaxAcceleration(50000);
-  position_upper.setMaxIntegral(100);
-  position_upper.setMaxSpeed(9000);
-  position_upper.setPID(0.018f, 0.001f, 0.0f);
   //speed_upper.setTarget(4000);
   //position_upper.setTarget(294912 * 3);
   m2006 downer;
   SpeedPIDController speed_downer(&downer, &downer);
   PositionPIDController position_downer(&speed_downer);
-  speed_downer.setInterval(5);
-  speed_downer.setAllowError(300);
-  speed_downer.setMaxIntegral(100);
-  speed_downer.setMaxOutput(6000);
-  speed_downer.setPID(0.1281f, 0.01f, 0.0009184f);
-  position_downer.setInterval(10);
-  position_downer.setMaxAcceleration(50000);
-  position_downer.setMaxIntegral(100);
-  position_downer.setMaxSpeed(9000);
-  position_downer.setPID(0.018f, 0.001f, 0.0f);
   /*
   speed_tuner.setAlpha(0.2);
   speed_tuner.start(500);
@@ -196,8 +172,9 @@ int main(void)
   elevator_.setMode(Mode::OPENLOOP);
   //arm_.setOut(-30); //-で時計回り
   //elevator_.setOut(-50); //正で上がる
-  Loader loader(&servo_, &arm_, &elevator_, &speed_upper, &speed_downer);
+  Loader loader(&servo_, &arm_, &elevator_, &position_upper, &position_downer);
 
+  loader.init();
   loader.shooterMove(true);
   loader.shooterInterrupt(true, true);
 
