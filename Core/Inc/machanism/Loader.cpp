@@ -32,18 +32,34 @@
 #define LOADMOTORINADDRESS 6
 #define LOADUPPERADDRESS 7
 
-#define M2006KP 0.1
-#define M2006KI 0.0001
-#define M2006KD 0.01
-#define M2006INTERVAL 10
-#define M2006ALLOWERROR 100
-#define M2006MAXOUTPUT 2000
-#define M2006PULSE 8192
+#define SPEED_KP 0.1281f
+#define SPEED_KI 0.01f
+#define SPEED_KD 0.0009184f
+#define SPEED_INTERVAL 5
+#define SPEED_ALLOWERROR 300
+#define SPEED_INTEGRAL 100
+#define SPPED_MAXOUTPUT 6000
+#define SPPED_PULSE 8192
+
+#define POSITION_KP 0.018f
+#define POSITION_KI 0.001f
+#define POSITION_KD 0.0f
+#define POSITION_INTERVAL 10
+#define POSITION_ACCEL 50000
+#define POSITION_INTEGRAL 100
+#define POSITION_MAXSPEED 9000
 
 Loader::Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, PositionPIDController* importer_upper_, PositionPIDController* importer_below_)
 : shovel_(shovel_), arm_(arm_), elevator_(elevator_), importer_upper_(importer_upper_), importer_below_(importer_below_)
 {
 	// TODO Auto-generated constructor stub
+}
+
+Loader::~Loader() {
+	// TODO Auto-generated destructor stub
+}
+
+void Loader::init() {
 	promises[SHOOTERUPPERADDRESS] = Promise<bool>(); //射出装填, 上にすこしずつ
 	promises[SHOOTERARMADDRESS] = Promise<bool>(); //射出装填, 交互にモーターを回す
 	promises[LOADDOWNERADDRESS] = Promise<bool>(); //弾丸装填, 下に移動
@@ -52,10 +68,33 @@ Loader::Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, Positi
 	promises[LOADSERVODOWNERADDRESS] = Promise<bool>(); //弾丸装填, サーボを下に
 	promises[LOADMOTORINADDRESS] = Promise<bool>(); //弾丸装填, モーターを内側に
 	promises[LOADUPPERADDRESS] = Promise<bool>(); //弾丸装填, 上に移動
-}
 
-Loader::~Loader() {
-	// TODO Auto-generated destructor stub
+	shovel_->setting(1000, 2000);
+
+	arm_->setMode(Mode::OPENLOOP);
+	elevator_->setMode(Mode::OPENLOOP);
+
+	importer_upper_->speed_pid_->setInterval(SPEED_INTERVAL);
+	importer_upper_->speed_pid_->setMaxIntegral(SPEED_INTEGRAL);
+	importer_upper_->speed_pid_->setMaxOutput(SPPED_MAXOUTPUT);
+	importer_upper_->speed_pid_->setPID(SPEED_KP, SPEED_KI, SPEED_KD);
+	importer_upper_->speed_pid_->setPulse(SPPED_PULSE);
+	importer_upper_->setInterval(POSITION_INTERVAL);
+	importer_upper_->setMaxAcceleration(POSITION_ACCEL);
+	importer_upper_->setMaxIntegral(POSITION_INTEGRAL);
+	importer_upper_->setMaxSpeed(POSITION_MAXSPEED);
+	importer_upper_->setPID(POSITION_KP, POSITION_KI, POSITION_KD);
+
+	importer_below_->speed_pid_->setInterval(SPEED_INTERVAL);
+	importer_below_->speed_pid_->setMaxIntegral(SPEED_INTEGRAL);
+	importer_below_->speed_pid_->setMaxOutput(SPPED_MAXOUTPUT);
+	importer_below_->speed_pid_->setPID(SPEED_KP, SPEED_KI, SPEED_KD);
+	importer_below_->speed_pid_->setPulse(SPPED_PULSE);
+	importer_below_->setInterval(POSITION_INTERVAL);
+	importer_below_->setMaxAcceleration(POSITION_ACCEL);
+	importer_below_->setMaxIntegral(POSITION_INTEGRAL);
+	importer_below_->setMaxSpeed(POSITION_MAXSPEED);
+	importer_below_->setPID(POSITION_KP, POSITION_KI, POSITION_KD);
 }
 
 /*shooterを動かすかを変更、もし机から雑巾を格納中ならfalseを返す*/
