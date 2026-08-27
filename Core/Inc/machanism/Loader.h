@@ -16,6 +16,12 @@
 #include "PositionPIDController.h"
 #include "EmbeddedPromise.hpp"
 
+enum SHOOTERLOAD {
+	ELEVATE,
+	ARMPLUS,
+	ARMMINUS
+};
+
 class Loader {
 public:
 	Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, PositionPIDController* importer_upper_, PositionPIDController* importer_below_);
@@ -24,7 +30,7 @@ public:
 	void init();
 
 	bool shooterMove(bool move);
-	void shooterInterrupt(bool elevate, bool direction);
+	void shooterInterrupt(SHOOTERLOAD mode);
 	void shooterUpdate();
 	bool loadbullet();
 	void bulletUpdate();

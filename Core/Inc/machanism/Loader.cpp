@@ -124,19 +124,27 @@ bool Loader::loadbullet(){
 }
 
 /* フォトインタラプタの割り込みが来る, shooterからフォトインタラプタの割り込み一定回ごとに呼び出して */
-void Loader::shooterInterrupt(bool elevate, bool direction){
+void Loader::shooterInterrupt(SHOOTERLOAD mode){
 	if (state != State::SHOOTER_MOVE) return;
-	if (elevate) {
+	switch (mode) {
+	case SHOOTERLOAD::ELEVATE:
 		elevator_->setOut(SHOOTERUPPEROUT);
 		promises[SHOOTERUPPERADDRESS].reset();
 		futures[SHOOTERUPPERADDRESS] = promises[SHOOTERUPPERADDRESS].get_future();
 		flag_counters[SHOOTERUPPERADDRESS] = ms_counter;
-	} else {
-		int16_t out = (direction) ? SHOOTERARMOUT : -SHOOTERARMOUT;
-		arm_->setOut(out);
+		break;
+	case SHOOTERLOAD::ARMPLUS:
+		arm_->setOut(SHOOTERARMOUT);
 		promises[SHOOTERARMADDRESS].reset();
 		futures[SHOOTERARMADDRESS] = promises[SHOOTERARMADDRESS].get_future();
 		flag_counters[SHOOTERARMADDRESS] = ms_counter;
+		break;
+	case SHOOTERLOAD::ARMMINUS:
+		arm_->setOut(-SHOOTERARMOUT);
+		promises[SHOOTERARMADDRESS].reset();
+		futures[SHOOTERARMADDRESS] = promises[SHOOTERARMADDRESS].get_future();
+		flag_counters[SHOOTERARMADDRESS] = ms_counter;
+		break;
 	}
 }
 
