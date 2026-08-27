@@ -140,6 +140,7 @@ void Loader::bulletUpdate(){
 				elapsed_time = LOADSERVOSECONDS;
 				promises[next].reset();
 				futures[next] = promises[next].get_future();
+				flag_counters[next] = ms_counter;
 			}
 		} else if (id == LOADMOTORINADDRESS) {
 			if (importer_upper_->isTargetReached() && importer_below_->isTargetReached()) {
@@ -149,11 +150,13 @@ void Loader::bulletUpdate(){
 				elapsed_time = LOADAPPDOWNSECONDS;
 				promises[next].reset();
 				futures[next] = promises[next].get_future();
+				flag_counters[next] = ms_counter;
 			}
 		} else {
 			if (diff_counter > elapsed_time) {
 				futures[id].clear();
 				promises[id].set_success(true);
+				flag_counters[next] = ms_counter;
 				if (next == futures.size()){
 					state = State::IDLE;
 					elevator_->setOut(0);
