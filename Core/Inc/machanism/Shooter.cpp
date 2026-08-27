@@ -16,7 +16,7 @@
 #define SERVO_ANGLE_OPEN 20 //サーボのアングル開いたとき、絶対変更
 
 Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
-: motor(_motor), esc(_esc), servo(_servo),counter(0), locked(false)
+: motor(_motor), esc(_esc), servo(_servo)
 {
 	// TODO Auto-generated constructor stub
 	motor->setMode(Mode::OPENLOOP);
