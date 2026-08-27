@@ -19,7 +19,6 @@ Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
 : motor(_motor), esc(_esc), servo(_servo)
 {
 	// TODO Auto-generated constructor stub
-	motor->setMode(Mode::OPENLOOP);
 }
 
 Shooter::~Shooter() {
@@ -27,6 +26,7 @@ Shooter::~Shooter() {
 }
 
 void Shooter::init(){
+	motor->setMode(Mode::OPENLOOP);
 	stop_ESC();
 }
 
