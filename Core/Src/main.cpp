@@ -33,6 +33,8 @@
 #include <ESC.h>
 #include <Servo.h>
 
+#include <Loader.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,6 +120,15 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  MD4ch_child arm_;
+  MD4ch_child elevator_;
+  Servo servo_(&htim4, TIM_CHANNEL_1);
+  servo_.setting(1000, 2000);
+  /*
+  servo_.move(0);
+  servo_.move(130);
+  */
+
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -134,13 +145,9 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+  std::vector<MD4ch_child*> motors = { &arm_, &elevator_};
 
-  MD4ch_child arm_;
-  Servo servo_(&htim4, TIM_CHANNEL_1);
-  servo_.setting(1000, 2000);
-  std::vector<MD4ch_child*> motors = { &arm_ };
-
-  MD_4ch md_manager(&hcan1, &motors, 0x302);
+  MD_4ch md_manager(&hcan1, &motors, 0x301);
 
   m2006 upper;
   SpeedPIDController speed_upper(&upper, &upper);
@@ -174,8 +181,11 @@ int main(void)
   speed_tuner.setAlpha(0.2);
   speed_tuner.start(500);
   */
-  position_upper.setTarget(294912 * 3);
-  position_downer.setTarget(294912 * 3);
+  /*
+  //＋で開く感じ
+  position_upper.setTarget(-294912 * 8.45);
+  position_downer.setTarget(-294912 * 8.45);
+  */
   //positiontuner.start(0.2f, 3000);
 
   std::vector<m2006*> m2006s = { &upper, &downer };
@@ -183,7 +193,14 @@ int main(void)
   manager_address = &m2006manager;
 
   arm_.setMode(Mode::OPENLOOP);
-  //arm_.setOut(-30);
+  elevator_.setMode(Mode::OPENLOOP);
+  //arm_.setOut(-30); //-で時計回り
+  //elevator_.setOut(-50); //正で上がる
+  Loader loader(&servo_, &arm_, &elevator_, &speed_upper, &speed_downer);
+
+  loader.shooterMove(true);
+  loader.shooterInterrupt(true, true);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -205,10 +222,9 @@ int main(void)
 	  */
 
 	  //ロボマス
+	  /*
+	  // 机からの装填
 	  if (flag){
-		  if (ms_counter % 500 == 0) {
-			  m2006manager.sendtoCAN();
-	  	  }
 		  if (ms_counter % 5 == 0) {
 			  speed_upper.update();
 			  speed_downer.update();
@@ -218,6 +234,23 @@ int main(void)
 			  position_downer.update();
 		  }
 		  //positiontuner.update1ms();
+		  m2006manager.sendtoCAN();
+		  flag = false;
+	  }
+	  */
+
+	  // 射出への装填
+	  if (flag) {
+		  if (ms_counter % 500 == 0) {
+			  md_manager.send();
+		  }
+
+		  if (ms_counter % 10 == 0){
+			  //装填自体のアップデート
+			  //後で追加
+			  loader.shooterUpdate();
+		  }
+
 		  flag = false;
 	  }
 
