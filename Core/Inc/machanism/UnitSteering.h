@@ -24,12 +24,17 @@ public:
 	UnitSteering(MD4ch_child* _drive, PositionPIDController* _steer_pid);
 	virtual ~UnitSteering();
 
+	void init();
+
 	void setZero();
 	void InterruptZero();
 	void Change_direction();
 	void move(int16_t drive_value, int32_t steer_value);
 	int32_t getFirstAngle(){ return firstAngle; }; //最初の位置を取得
+	int32_t getAngle(){ return steer_pid->speed_pid_->enc->getAngle(); }
+	bool isSettingZero() { return  settingZero; };
 	setZeroMode getZeromode(){ return zeromode; }; //現在のモードを取得、これをもとにエンコーダがどれくらい回転したらどういう動作をするかを
+	PositionPIDController* getSteerPID() { return steer_pid; };
 
 	void lock();
 	void unlock();
@@ -38,9 +43,9 @@ private:
 	MD4ch_child* drive;
 	PositionPIDController* steer_pid;
 
-	bool settingZero;
-	int32_t firstAngle; //原点取りをするために使う、180度回すときの最初の数値
-	setZeroMode zeromode;
+	bool settingZero = false;
+	int32_t firstAngle = 0; //原点取りをするために使う、180度回すときの最初の数値
+	setZeroMode zeromode = setZeroMode::ROTATE180;
 
 	bool locked = true;
 };
