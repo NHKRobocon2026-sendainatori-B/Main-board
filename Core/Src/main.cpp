@@ -33,6 +33,9 @@
 #include <ESC.h>
 #include <Servo.h>
 
+#include <Manager.h>
+#include <Steering.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,6 +65,10 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 volatile bool flag = false;
 int32_t ms_counter = 0;
+Steering* steering_address;
+Manager* manager_address;
+m2006_manager* m2006_address;
+uint8_t uartRxbyte;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -117,6 +124,77 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  //ステアリング*******************************************************************************
+  	std::vector<MD4ch_child*> steer_drives;
+  	std::vector<m2006*> m2006s;
+  	std::array<UnitSteering*, 4> units;
+
+  	//FL
+  	MD4ch_child driveFL;
+  	steer_drives.push_back(&driveFL);
+  	m2006 steerFL;
+  	m2006s.push_back(&steerFL);
+  	SpeedPIDController str_speedFL(&steerFL, &steerFL);
+  	PositionPIDController str_positionFL(&str_speedFL);
+  	UnitSteering UnitFL(&driveFL, &str_positionFL);
+  	units[0] = &UnitFL;
+  	//FR
+  	MD4ch_child driveFR;
+  	steer_drives.push_back(&driveFR);
+  	m2006 steerFR;
+  	m2006s.push_back(&steerFR);
+  	SpeedPIDController str_speedFR(&steerFR, &steerFR);
+  	PositionPIDController str_positionFR(&str_speedFR);
+  	UnitSteering UnitFR(&driveFR, &str_positionFR);
+  	units[1] = &UnitFR;
+  	//BL
+  	MD4ch_child driveBL;
+  	steer_drives.push_back(&driveBL);
+  	m2006 steerBL;
+  	m2006s.push_back(&steerBL);
+  	SpeedPIDController str_speedBL(&steerBL, &steerBL);
+  	PositionPIDController str_positionBL(&str_speedBL);
+  	UnitSteering UnitBL(&driveBL, &str_positionBL);
+  	units[2] = &UnitBL;
+  	//BR
+  	MD4ch_child driveBR;
+  	steer_drives.push_back(&driveBR);
+  	m2006 steerBR;
+  	m2006s.push_back(&steerBR);
+  	SpeedPIDController str_speedBR(&steerBR, &steerBR);
+  	PositionPIDController str_positionBR(&str_speedBR);
+  	UnitSteering UnitBR(&driveBR, &str_positionBR);
+  	units[3] = &UnitBR;
+
+  	std::array<uint16_t, 4> interrupts = { GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7 };
+  	Steering steering(&units, &interrupts);
+  	steering_address = &steering;
+  	steering.init();
+  //ステアリング終了*******************************************************************************
+
+  //射出**************************************************************************************
+  	Shooter shooter(nullptr, nullptr, nullptr); //まだいらない
+  //射出終了***********************************************************************************
+
+  //装填**************************************************************************************
+  	Loader loader; //まだ不適切
+  //装填終了***********************************************************************************
+
+  //オドメトリ************************************************************************************
+  	Odometry odometry(nullptr, nullptr); //今は使わない、使うときはRotaryEncoderを入れよう
+  //オドメトリ終了*********************************************************************************
+
+  //マネージャー**********************************************************************************
+  	Manager manager(nullptr, nullptr, nullptr, &steering, &huart2);
+  	manager_address = &manager;
+  //マネージャー終了*******************************************************************************
+
+  //送信関連***********************************************************************************
+  	m2006_manager m2006manager(&m2006s, &hcan1);
+  	m2006_address = &m2006manager;
+  	MD_4ch MD4ch1(&hcan1, &steer_drives, 0x302);
+  //送信関連終了********************************************************************************
+
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -133,6 +211,7 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
+  HAL_UART_Receive_IT(&huart2, &uartRxbyte, 1); //UARTの割り込み
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -143,7 +222,11 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  if (flag){
-
+		  if (ms_counter % 10 == 0) {
+			  MD4ch1.send();
+		  }
+		  m2006manager.sendtoCAN();
+		  flag = false;
 	  }
   }
   /* USER CODE END 3 */
@@ -415,6 +498,7 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
@@ -422,6 +506,19 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pins : PD4 PD5 PD6 PD7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -444,11 +541,38 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
 	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData) == HAL_OK){
 		if (rxHeader.StdId >= 0x201 && rxHeader.StdId <= 0x208) {
-			if (manager_address != nullptr){
-				manager_address->updatefromCAN(rxData, rxHeader.StdId);
+			if (m2006_address != nullptr){
+				m2006_address->updatefromCAN(rxData, rxHeader.StdId);
 			}
 		}
 	}
+}
+
+extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin >= GPIO_PIN_4 && GPIO_Pin <= GPIO_PIN_7) {
+		if (steering_address == nullptr) return;
+		ProcessStatus status = steering_address->interruptsetZero(GPIO_Pin);
+		if (status == ProcessStatus::FAILED) {
+			manager_address->sendSetzero(false);
+		} else if (status == ProcessStatus::SUCCESS) {
+			manager_address->sendSetzero(true);
+		}
+	}
+}
+
+extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART2) {
+		manager_address->updatefromUART(uartRxbyte);
+
+		HAL_UART_Receive_IT(&huart2, &uartRxbyte, 1);
+	}
+}
+
+extern "C" void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART2) {
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        HAL_UART_Receive_IT(huart, &uartRxbyte, 1);
+    }
 }
 
 /* USER CODE END 4 */
