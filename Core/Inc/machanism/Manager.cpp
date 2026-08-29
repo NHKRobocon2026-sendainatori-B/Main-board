@@ -169,18 +169,18 @@ void Manager::updateOdometry(){
 /* ロック */
 bool Manager::lock(){
 	locked = true;
-	loader_->lock();
-	shooter_->lock();
-	steering_->lock();
+	if (loader_ != nullptr) loader_->lock();
+	if (shooter_ != nullptr) shooter_->lock();
+	if (steering_ != nullptr) steering_->lock();
 	return true;
 }
 
 /* アンロック */
 bool Manager::unlock(){
 	locked = false;
-	loader_->unlock();
-	shooter_->unlock();
-	steering_->unlock();
+	if (loader_ != nullptr) loader_->unlock();
+	if (shooter_ != nullptr) shooter_->unlock();
+	if (steering_ != nullptr) steering_->unlock();
 	if (resetflag){
 		//ゼロ点合わせ等緊急停止ボタンを押した後しなければならないこと
 		steering_->setZero();
