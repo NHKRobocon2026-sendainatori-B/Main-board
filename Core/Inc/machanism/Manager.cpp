@@ -66,13 +66,14 @@ void Manager::updatefromUART(uint8_t data){
 				state = State::HEADER;
 			}
 			break;
-		}
 		case Target::RESET:
 			if (data == 0x89){
 				state = State::FOOTER;
 			} else {
 				state = State::HEADER;
 			}
+			break;
+		}
 	} else if (state == State::FOOTER){
 		state = State::HEADER;
 		switch(target){
