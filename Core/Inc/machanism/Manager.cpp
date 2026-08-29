@@ -78,7 +78,11 @@ void Manager::updatefromUART(uint8_t data){
 		switch(target){
 		case Target::STEER:
 			if (data == 0x4E){
-				//steerを動かす
+				steering_->move(
+						static_cast<float>(logger_[0] / 100),
+						static_cast<float>(logger_[1] / 100),
+						static_cast<float>(logger_[2] / 100)
+				);
 			}
 			break;
 		case Target::SHOOTER:
@@ -111,7 +115,10 @@ void Manager::updatefromUART(uint8_t data){
 		case Target::START:
 			if (data == 0x03){
 				//スタートさせる処理
-				//アンロック、ゼロ点合わせ開始
+				steering_->unlock();
+				shooter_->unlock();
+				loader_->unlock();
+				steering_->setZero();
 			}
 			break;
 		case Target::RESET:
@@ -175,6 +182,7 @@ bool Manager::unlock(){
 	steering_->unlock();
 	if (resetflag){
 		//ゼロ点合わせ等緊急停止ボタンを押した後しなければならないこと
+		steering_->setZero();
 		resetflag = false;
 	}
 	return true;
