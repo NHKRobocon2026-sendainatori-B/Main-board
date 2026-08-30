@@ -222,7 +222,13 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  if (flag){
+		  if (ms_counter % 5 == 0) {
+		 	  steering.updateSpeed();
+		  }
 		  if (ms_counter % 10 == 0) {
+			  steering.updatePosition();
+		  }
+		  if (ms_counter % 20 == 0) {
 			  MD4ch1.send();
 		  }
 		  m2006manager.sendtoCAN();
