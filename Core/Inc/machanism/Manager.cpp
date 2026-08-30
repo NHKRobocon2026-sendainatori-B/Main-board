@@ -116,10 +116,12 @@ void Manager::updatefromUART(uint8_t data){
 		case Target::START:
 			if (data == 0x03){
 				//スタートさせる処理
-				steering_->unlock();
-				shooter_->unlock();
-				loader_->unlock();
-				steering_->setZero();
+				if (steering_ != nullptr) {
+					steering_->unlock();
+					steering_->setZero();
+				}
+				if (shooter_ != nullptr) shooter_->unlock();
+				if (loader_ != nullptr) loader_->unlock();
 			}
 			break;
 		case Target::RESET:
@@ -183,7 +185,7 @@ bool Manager::unlock(){
 	if (steering_ != nullptr) steering_->unlock();
 	if (resetflag){
 		//ゼロ点合わせ等緊急停止ボタンを押した後しなければならないこと
-		steering_->setZero();
+		if (steering_ != nullptr) steering_->setZero();
 		resetflag = false;
 	}
 	return true;
