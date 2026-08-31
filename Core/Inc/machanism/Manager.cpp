@@ -80,9 +80,9 @@ void Manager::updatefromUART(uint8_t data){
 		case Target::STEER:
 			if (data == 0x4E){
 				steering_->move(
-						static_cast<float>(logger_[0]) / 100.0f,
-						static_cast<float>(logger_[1]) / 100.0f,
-						static_cast<float>(logger_[2]) / 100.0f
+					static_cast<float>(static_cast<int8_t>(logger_[0])) / 100.0f,
+					static_cast<float>(static_cast<int8_t>(logger_[1])) / 100.0f,
+					static_cast<float>(static_cast<int8_t>(logger_[2])) / 100.0f
 				);
 			}
 			break;
