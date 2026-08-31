@@ -69,6 +69,7 @@ Steering* steering_address;
 Manager* manager_address;
 m2006_manager* m2006_address;
 uint8_t uartRxbyte;
+uint8_t intrrupt = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -230,6 +231,12 @@ int main(void)
 		  }
 		  if (ms_counter % 20 == 0) {
 			  MD4ch1.send();
+		  }
+		  if (ms_counter % 99 == 0) {
+			  ProcessStatus status = steering.setZeroupdate();
+			  if (status == ProcessStatus::FAILED) {
+				  manager.sendSetzero(false);
+			  }
 		  }
 		  m2006manager.sendtoCAN();
 		  flag = false;
@@ -557,6 +564,7 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin >= GPIO_PIN_4 && GPIO_Pin <= GPIO_PIN_7) {
 		if (steering_address == nullptr) return;
+		intrrupt++;
 		ProcessStatus status = steering_address->interruptsetZero(GPIO_Pin);
 		if (status == ProcessStatus::FAILED) {
 			manager_address->sendSetzero(false);
