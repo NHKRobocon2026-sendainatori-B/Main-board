@@ -126,8 +126,6 @@ void SpeedPIDController::reset(){
 
 /* ロック */
 void SpeedPIDController::lock(){
-	integral = 0.0f;
-	last_error = 0.0f;
 	act->lock();
 	locked = true;
 }
@@ -135,7 +133,7 @@ void SpeedPIDController::lock(){
 /* アンロック */
 void SpeedPIDController::unlock(){
 	act->unlock();
-	last_angle = enc->getAngle();
+	reset();
 	locked = false;
 }
 
