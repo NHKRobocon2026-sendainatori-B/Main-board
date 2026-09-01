@@ -42,6 +42,7 @@ int16_t MD4ch_child::getOut(){
 
 /* ロック */
 void MD4ch_child::lock(){
+	lastmode = mode;
 	mode = Mode::STOP;
 	out = 0;
 	locked = true;
@@ -49,5 +50,6 @@ void MD4ch_child::lock(){
 
 /* アンロック */
 void MD4ch_child::unlock(){
+	mode = lastmode;
 	locked = false;
 }
