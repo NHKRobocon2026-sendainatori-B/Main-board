@@ -65,13 +65,11 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 volatile bool flag = false;
 volatile bool uartFlag = false;
-volatile bool m2006Flag = false;
 volatile bool steerFlag = false;
 volatile int32_t ms_counter = 0;
-volatile uint8_t uartRxbyte;
-volatile uint8_t CANRxData[8];
 volatile CAN_RxHeaderTypeDef CANRxHeader;
 volatile uint16_t setZeroPin = 0;
+m2006_manager* m2006_address;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -128,71 +126,72 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   //ステアリング*******************************************************************************
-  	std::vector<MD4ch_child*> steer_drives;
-  	std::vector<m2006*> m2006s;
-  	std::array<UnitSteering*, 4> units;
+    static std::vector<MD4ch_child*> steer_drives;
+    static std::vector<m2006*> m2006s;
+    static std::array<UnitSteering*, 4> units;
 
   	//FL
-  	MD4ch_child driveFL;
+    static MD4ch_child driveFL;
   	steer_drives.push_back(&driveFL);
-  	m2006 steerFL;
+  	static m2006 steerFL;
   	m2006s.push_back(&steerFL);
-  	SpeedPIDController str_speedFL(&steerFL, &steerFL);
-  	PositionPIDController str_positionFL(&str_speedFL);
-  	UnitSteering UnitFL(&driveFL, &str_positionFL);
+  	static SpeedPIDController str_speedFL(&steerFL, &steerFL);
+  	static PositionPIDController str_positionFL(&str_speedFL);
+  	static UnitSteering UnitFL(&driveFL, &str_positionFL);
   	units[0] = &UnitFL;
   	//FR
-  	MD4ch_child driveFR;
+  	static MD4ch_child driveFR;
   	steer_drives.push_back(&driveFR);
-  	m2006 steerFR;
+  	static m2006 steerFR;
   	m2006s.push_back(&steerFR);
-  	SpeedPIDController str_speedFR(&steerFR, &steerFR);
-  	PositionPIDController str_positionFR(&str_speedFR);
-  	UnitSteering UnitFR(&driveFR, &str_positionFR);
+  	static SpeedPIDController str_speedFR(&steerFR, &steerFR);
+  	static PositionPIDController str_positionFR(&str_speedFR);
+  	static UnitSteering UnitFR(&driveFR, &str_positionFR);
   	units[1] = &UnitFR;
   	//BL
-  	MD4ch_child driveBL;
+  	static MD4ch_child driveBL;
   	steer_drives.push_back(&driveBL);
-  	m2006 steerBL;
+  	static m2006 steerBL;
   	m2006s.push_back(&steerBL);
-  	SpeedPIDController str_speedBL(&steerBL, &steerBL);
-  	PositionPIDController str_positionBL(&str_speedBL);
-  	UnitSteering UnitBL(&driveBL, &str_positionBL);
+  	static SpeedPIDController str_speedBL(&steerBL, &steerBL);
+  	static PositionPIDController str_positionBL(&str_speedBL);
+  	static UnitSteering UnitBL(&driveBL, &str_positionBL);
   	units[2] = &UnitBL;
   	//BR
-  	MD4ch_child driveBR;
+  	static MD4ch_child driveBR;
   	steer_drives.push_back(&driveBR);
-  	m2006 steerBR;
+  	static m2006 steerBR;
   	m2006s.push_back(&steerBR);
-  	SpeedPIDController str_speedBR(&steerBR, &steerBR);
-  	PositionPIDController str_positionBR(&str_speedBR);
-  	UnitSteering UnitBR(&driveBR, &str_positionBR);
+  	static SpeedPIDController str_speedBR(&steerBR, &steerBR);
+  	static PositionPIDController str_positionBR(&str_speedBR);
+  	static UnitSteering UnitBR(&driveBR, &str_positionBR);
   	units[3] = &UnitBR;
 
-  	std::array<uint16_t, 4> interrupts = { GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7 };
-  	Steering steering(&units, &interrupts);
+  	static std::array<uint16_t, 4> interrupts = { GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7 };
+  	static Steering steering(&units, &interrupts);
   	steering.init();
   //ステアリング終了*******************************************************************************
 
   //射出**************************************************************************************
-  	Shooter shooter(nullptr, nullptr, nullptr); //まだいらない
+  	static Shooter shooter(nullptr, nullptr, nullptr); //まだいらない
   //射出終了***********************************************************************************
 
   //装填**************************************************************************************
-  	Loader loader; //まだ不適切
+  	static Loader loader; //まだ不適切
   //装填終了***********************************************************************************
 
   //オドメトリ************************************************************************************
-  	Odometry odometry(nullptr, nullptr); //今は使わない、使うときはRotaryEncoderを入れよう
+  	static Odometry odometry(nullptr, nullptr); //今は使わない、使うときはRotaryEncoderを入れよう
   //オドメトリ終了*********************************************************************************
 
   //マネージャー**********************************************************************************
-  	Manager manager(nullptr, nullptr, nullptr, &steering, &huart2);
+  	static Manager manager(nullptr, nullptr, nullptr, &steering, &huart2);
   //マネージャー終了*******************************************************************************
 
   //送信関連***********************************************************************************
-  	m2006_manager m2006manager(&m2006s, &hcan1);
-  	MD_4ch MD4ch1(&hcan1, &steer_drives, 0x302);
+  	static m2006_manager m2006manager(&m2006s, &hcan1);
+  	m2006_address = &m2006manager;
+  	static MD_4ch MD4ch1(&hcan1, &steer_drives, 0x302);
   //送信関連終了********************************************************************************
 
   //CAN設定、フィルター
@@ -211,7 +210,7 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
-  HAL_UART_Receive_IT(&huart2, (uint8_t*)&uartRxbyte, 1); //UARTの割り込み
+  HAL_UART_Receive_IT(&huart2, const_cast<uint8_t*>(&uartRxbyte), 1); //UARTの割り込み
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -243,10 +242,6 @@ int main(void)
 	  if (uartFlag) {
 		  manager.updatefromUART(uartRxbyte);
 		  uartFlag = false;
-	  }
-	  if (m2006Flag) {
-		  m2006manager.updatefromCAN((uint8_t*)CANRxData, CANRxHeader.StdId);
-		  m2006Flag = false;
 	  }
 	  if (steerFlag) {
 		  ProcessStatus status = steering.interruptsetZero(setZeroPin);
@@ -565,9 +560,13 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, (CAN_RxHeaderTypeDef*)(&CANRxHeader), (uint8_t*)CANRxData) == HAL_OK){
-		if (CANRxHeader.StdId >= 0x201 && CANRxHeader.StdId <= 0x208) {
-			m2006Flag = true;
+	CAN_RxHeaderTypeDef rxHeader;
+	uint8_t rxData[8];
+
+	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData) == HAL_OK){
+		if (rxHeader.StdId >= 0x201 && rxHeader.StdId <= 0x208) {
+			if (m2006_address == nullptr) return;
+			m2006_address->updatefromCAN(rxData, rxHeader.StdId);
 		}
 	}
 }
@@ -583,14 +582,14 @@ extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
 		uartFlag = true;
 
-		HAL_UART_Receive_IT(&huart2, (uint8_t*)&uartRxbyte, 1);
+		HAL_UART_Receive_IT(&huart2, const_cast<uint8_t*>(&uartRxbyte), 1);
 	}
 }
 
 extern "C" void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART2) {
         __HAL_UART_CLEAR_OREFLAG(huart);
-        HAL_UART_Receive_IT(huart, (uint8_t*)&uartRxbyte, 1);
+        HAL_UART_Receive_IT(huart, const_cast<uint8_t*>(&uartRxbyte), 1);
     }
 }
 
