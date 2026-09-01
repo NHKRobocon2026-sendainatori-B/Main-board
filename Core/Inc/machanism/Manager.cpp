@@ -106,7 +106,7 @@ void Manager::updatefromUART(uint8_t data){
 				//結果をUARTで送信
 				if (logger_[0] == 0x42){
 					_responceLock(lock());
-				} else if (logger_[0] == 0xD1){
+				} else if (logger_[0] == 0xBD){
 					_responceLock(unlock());
 				} else {
 					_responceLock(false);
