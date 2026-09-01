@@ -58,11 +58,11 @@ private:
 	};
 	float max_integral = 10.0f;
 	float integral = 0.0f;
-	float last_error = 0.0f;
 	float dt = 0.01f;
 	int16_t allowError = 10; //許容誤差
 	int16_t max_output = 4096;
 	int32_t last_angle = 0;
+	float last_rpm = 0.0f;
 	float pulse = 8192.0f;
 
 	bool locked = false;
