@@ -11,6 +11,11 @@ PositionPIDController::PositionPIDController(SpeedPIDController* speed_pid_)
 : speed_pid_(speed_pid_)
 {
 	// TODO Auto-generated constructor stub
+	if (speed_pid_ != nullptr && speed_pid_->enc != nullptr) {
+		last_angle = speed_pid_->enc->getAngle();
+	} else {
+		last_angle = 0.0f;
+	}
 }
 
 PositionPIDController::~PositionPIDController() {
@@ -81,10 +86,10 @@ void PositionPIDController::update(){
 			if (integral > max_integral) integral = max_integral;
 			if (integral < -max_integral) integral = -max_integral;
 
-			derivative = gain.kd * (error - last_error) / dt;
+			derivative = gain.kd * (now_angle - last_angle) / dt;
 		}
 
-		last_error = error;
+		last_angle = now_angle;
 
 		if (integral > max_integral) integral = max_integral;
 		if (integral < -max_integral) integral = -max_integral;
@@ -115,15 +120,21 @@ void PositionPIDController::reset(){
 	integral = 0.0f;
 
 	if (speed_pid_ != nullptr && speed_pid_->enc != nullptr) {
-		last_error = (float)(target - speed_pid_->enc->getAngle());
+		last_angle = speed_pid_->enc->getAngle();
 	} else {
-		last_error = 0.0f;
+		last_angle = 0.0f;
 	}
 }
 
 /* PIDを有効化 */
 void PositionPIDController::enable(){
 	effective = true;
+	//角度を更新
+	if (speed_pid_ != nullptr && speed_pid_->enc != nullptr) {
+		last_angle = speed_pid_->enc->getAngle();
+	} else {
+		last_angle = 0.0f;
+	}
 }
 
 /* PIDを無効化 speedPIDに直接数値を入れられる */

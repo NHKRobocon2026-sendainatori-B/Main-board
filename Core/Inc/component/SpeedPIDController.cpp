@@ -12,7 +12,7 @@ SpeedPIDController::SpeedPIDController(Actuator* _act, Encoder* _enc)
 : act(_act), enc(_enc)
 {
 	// TODO Auto-generated constructor stub
-
+	last_angle = enc->getAngle();
 }
 
 SpeedPIDController::~SpeedPIDController() {
@@ -86,10 +86,11 @@ void SpeedPIDController::update(){
 		if (integral > max_integral) integral = max_integral;
 		if (integral < -max_integral) integral = -max_integral;
 
-		derivative = gain.kd * (error - last_error) / dt;
+		derivative = gain.kd * (now_rpm - last_rpm) / dt;
 	}
 
-	last_error = error;
+	last_rpm = now_rpm;
+	last_angle = now_angle;
 
 	if (integral > max_integral) integral = max_integral;
 	if (integral < -max_integral) integral = -max_integral;
@@ -100,8 +101,6 @@ void SpeedPIDController::update(){
 	if (output < -max_output) output = -max_output;
 
 	act->move((int16_t)output);
-
-	last_angle = now_angle;
 }
 
 /* PIDを有効化 */
@@ -118,7 +117,7 @@ void SpeedPIDController::disable(){
 /* 積分、微分をリセット */
 void SpeedPIDController::reset(){
 	integral = 0.0f;
-	last_error = 0.0f;
+	last_rpm = 0.0f;
 	if (enc != nullptr) {
 		last_angle = enc->getAngle();
 	}
