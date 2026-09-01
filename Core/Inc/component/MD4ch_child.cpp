@@ -22,6 +22,7 @@ MD4ch_child::~MD4ch_child() {
 void MD4ch_child::setMode(Mode _mode){
 	if (locked) return;
 	mode = _mode;
+	lastmode = _mode;
 }
 
 /* 出力を変更 */
