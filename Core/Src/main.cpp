@@ -64,12 +64,14 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 volatile bool flag = false;
-int32_t ms_counter = 0;
-Steering* steering_address;
-Manager* manager_address;
-m2006_manager* m2006_address;
-uint8_t uartRxbyte;
-uint8_t intrrupt = 0;
+volatile bool uartFlag = false;
+volatile bool m2006Flag = false;
+volatile bool steerFlag = false;
+volatile int32_t ms_counter = 0;
+volatile uint8_t uartRxbyte;
+volatile uint8_t CANRxData[8];
+volatile CAN_RxHeaderTypeDef CANRxHeader;
+volatile uint16_t setZeroPin = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -169,7 +171,6 @@ int main(void)
 
   	std::array<uint16_t, 4> interrupts = { GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7 };
   	Steering steering(&units, &interrupts);
-  	steering_address = &steering;
   	steering.init();
   //ステアリング終了*******************************************************************************
 
@@ -187,12 +188,10 @@ int main(void)
 
   //マネージャー**********************************************************************************
   	Manager manager(nullptr, nullptr, nullptr, &steering, &huart2);
-  	manager_address = &manager;
   //マネージャー終了*******************************************************************************
 
   //送信関連***********************************************************************************
   	m2006_manager m2006manager(&m2006s, &hcan1);
-  	m2006_address = &m2006manager;
   	MD_4ch MD4ch1(&hcan1, &steer_drives, 0x302);
   //送信関連終了********************************************************************************
 
@@ -212,7 +211,7 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
-  HAL_UART_Receive_IT(&huart2, &uartRxbyte, 1); //UARTの割り込み
+  HAL_UART_Receive_IT(&huart2, (uint8_t*)&uartRxbyte, 1); //UARTの割り込み
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -240,6 +239,23 @@ int main(void)
 		  }
 		  m2006manager.sendtoCAN();
 		  flag = false;
+	  }
+	  if (uartFlag) {
+		  manager.updatefromUART(uartRxbyte);
+		  uartFlag = false;
+	  }
+	  if (m2006Flag) {
+		  m2006manager.updatefromCAN((uint8_t*)CANRxData, CANRxHeader.StdId);
+		  m2006Flag = false;
+	  }
+	  if (steerFlag) {
+		  ProcessStatus status = steering.interruptsetZero(setZeroPin);
+		  if (status == ProcessStatus::FAILED) {
+			  manager.sendSetzero(false);
+		  } else if (status == ProcessStatus::SUCCESS) {
+			  manager.sendSetzero(true);
+		  }
+		  steerFlag = false;
 	  }
   }
   /* USER CODE END 3 */
@@ -549,43 +565,32 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-	CAN_RxHeaderTypeDef rxHeader;
-	uint8_t rxData[8];
-
-	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData) == HAL_OK){
-		if (rxHeader.StdId >= 0x201 && rxHeader.StdId <= 0x208) {
-			if (m2006_address != nullptr){
-				m2006_address->updatefromCAN(rxData, rxHeader.StdId);
-			}
+	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, (CAN_RxHeaderTypeDef*)(&CANRxHeader), (uint8_t*)CANRxData) == HAL_OK){
+		if (CANRxHeader.StdId >= 0x201 && CANRxHeader.StdId <= 0x208) {
+			m2006Flag = true;
 		}
 	}
 }
 
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin >= GPIO_PIN_4 && GPIO_Pin <= GPIO_PIN_7) {
-		if (steering_address == nullptr) return;
-		intrrupt++;
-		ProcessStatus status = steering_address->interruptsetZero(GPIO_Pin);
-		if (status == ProcessStatus::FAILED) {
-			manager_address->sendSetzero(false);
-		} else if (status == ProcessStatus::SUCCESS) {
-			manager_address->sendSetzero(true);
-		}
+		steerFlag = true;
+		setZeroPin = GPIO_Pin;
 	}
 }
 
 extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
-		manager_address->updatefromUART(uartRxbyte);
+		uartFlag = true;
 
-		HAL_UART_Receive_IT(&huart2, &uartRxbyte, 1);
+		HAL_UART_Receive_IT(&huart2, (uint8_t*)&uartRxbyte, 1);
 	}
 }
 
 extern "C" void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART2) {
         __HAL_UART_CLEAR_OREFLAG(huart);
-        HAL_UART_Receive_IT(huart, &uartRxbyte, 1);
+        HAL_UART_Receive_IT(huart, (uint8_t*)&uartRxbyte, 1);
     }
 }
 
