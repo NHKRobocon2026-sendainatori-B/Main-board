@@ -57,7 +57,7 @@ private:
 	float integral = 0.0f;
 	int16_t allowError = 10; //許容誤差
 	int16_t max_speed = 4096;
-	int32_t last_error = 0;
+	int32_t last_angle = 0;
 	float dt = 0.01f;
 
 	bool locked = false;
