@@ -127,6 +127,7 @@ void SpeedPIDController::reset(){
 /* ロック */
 void SpeedPIDController::lock(){
 	act->lock();
+	target = 0;
 	locked = true;
 }
 

@@ -20,7 +20,6 @@ PositionPIDController::~PositionPIDController() {
 /* 目標値を設定、このスピードになるようにする */
 void PositionPIDController::setTarget(int32_t _target){
 	target = _target;
-	reset();
 }
 
 /* pidの値を設定 */
@@ -113,7 +112,6 @@ void PositionPIDController::update(){
 
 /* 積分、微分をリセット */
 void PositionPIDController::reset(){
-	target_speed = 0.0f;
 	integral = 0.0f;
 
 	if (speed_pid_ != nullptr && speed_pid_->enc != nullptr) {
@@ -136,6 +134,7 @@ void PositionPIDController::disable(){
 /* ロック */
 void PositionPIDController::lock(){
 	speed_pid_->lock();
+	target_speed = 0;
 	locked = true;
 }
 
