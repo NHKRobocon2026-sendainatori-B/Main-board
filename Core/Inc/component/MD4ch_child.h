@@ -34,6 +34,7 @@ public:
 
 private:
 	Mode mode = Mode::OPENLOOP;
+	Mode lastmode; //lock解除後にmodeを戻すための変数
 	int16_t out = 0;
 	bool locked = false;
 };
