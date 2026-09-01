@@ -60,6 +60,7 @@ void m2006::updateFromCAN(uint8_t data[8]){
 /* ロック */
 void m2006::lock(){
 	locked = true;
+	targetCurrent = 0;
 }
 
 /* アンロック */

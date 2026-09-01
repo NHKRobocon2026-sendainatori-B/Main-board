@@ -121,8 +121,6 @@ void PositionPIDController::reset(){
 	} else {
 		last_error = 0.0f;
 	}
-
-	speed_pid_->reset();
 }
 
 /* PIDを有効化 */
