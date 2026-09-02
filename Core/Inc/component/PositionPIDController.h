@@ -58,6 +58,7 @@ private:
 	int16_t allowError = 10; //許容誤差
 	int16_t max_speed = 4096;
 	int32_t last_angle = 0;
+	float last_error = 0.0f;
 	float dt = 0.01f;
 
 	bool locked = false;
