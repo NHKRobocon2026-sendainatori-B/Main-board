@@ -64,12 +64,12 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 volatile bool flag = false;
-volatile bool uartFlag = false;
-volatile bool steerFlag = false;
 volatile int32_t ms_counter = 0;
-volatile CAN_RxHeaderTypeDef CANRxHeader;
+uint8_t uartRxbyte = 0;
 volatile uint16_t setZeroPin = 0;
 m2006_manager* m2006_address;
+Manager* maanger_address;
+Steering* steering_address;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -170,6 +170,7 @@ int main(void)
   	static std::array<uint16_t, 4> interrupts = { GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7 };
   	static Steering steering(&units, &interrupts);
   	steering.init();
+  	steering_address = &steering;
   //ステアリング終了*******************************************************************************
 
   //射出**************************************************************************************
@@ -186,6 +187,7 @@ int main(void)
 
   //マネージャー**********************************************************************************
   	static Manager manager(nullptr, nullptr, nullptr, &steering, &huart2);
+  	maanger_address = &manager;
   //マネージャー終了*******************************************************************************
 
   //送信関連***********************************************************************************
@@ -210,7 +212,7 @@ int main(void)
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
-  HAL_UART_Receive_IT(&huart2, const_cast<uint8_t*>(&uartRxbyte), 1); //UARTの割り込み
+  HAL_UART_Receive_IT(&huart2, &uartRxbyte, 1); //UARTの割り込み
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -238,19 +240,6 @@ int main(void)
 		  }
 		  m2006manager.sendtoCAN();
 		  flag = false;
-	  }
-	  if (uartFlag) {
-		  manager.updatefromUART(uartRxbyte);
-		  uartFlag = false;
-	  }
-	  if (steerFlag) {
-		  ProcessStatus status = steering.interruptsetZero(setZeroPin);
-		  if (status == ProcessStatus::FAILED) {
-			  manager.sendSetzero(false);
-		  } else if (status == ProcessStatus::SUCCESS) {
-			  manager.sendSetzero(true);
-		  }
-		  steerFlag = false;
 	  }
   }
   /* USER CODE END 3 */
@@ -573,23 +562,30 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin >= GPIO_PIN_4 && GPIO_Pin <= GPIO_PIN_7) {
-		steerFlag = true;
-		setZeroPin = GPIO_Pin;
+		if (steering_address == nullptr || maanger_address == nullptr) return;
+		ProcessStatus status = steering_address->interruptsetZero(GPIO_Pin);
+		if (status == ProcessStatus::FAILED) {
+			maanger_address->sendSetzero(false);
+		} else if (status == ProcessStatus::SUCCESS) {
+			maanger_address->sendSetzero(true);
+		}
 	}
 }
 
 extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
-		uartFlag = true;
+		if (maanger_address != nullptr){
+			maanger_address->updatefromUART(uartRxbyte);
+		}
 
-		HAL_UART_Receive_IT(&huart2, const_cast<uint8_t*>(&uartRxbyte), 1);
+		HAL_UART_Receive_IT(&huart2, &uartRxbyte, 1);
 	}
 }
 
 extern "C" void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART2) {
         __HAL_UART_CLEAR_OREFLAG(huart);
-        HAL_UART_Receive_IT(huart, const_cast<uint8_t*>(&uartRxbyte), 1);
+        HAL_UART_Receive_IT(huart, &uartRxbyte, 1);
     }
 }
 
