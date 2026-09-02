@@ -55,6 +55,7 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
@@ -71,10 +72,11 @@ m2006_manager* manager_address;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
-static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM1_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -114,10 +116,11 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_CAN1_Init();
-  MX_TIM3_Init();
   MX_TIM4_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
   //CAN設定、フィルター
@@ -137,11 +140,25 @@ int main(void)
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
 
-  MD4ch_child arm_;
+  MD4ch_child arm_drive;
+  RotaryEncoder arm_enc_(&htim1);
+  SpeedPIDController arm_speed_(&arm_drive, &arm_enc_);
+  arm_speed_.setAllowError(100);
+  arm_speed_.setInterval(5);
+  arm_speed_.setMaxIntegral(500);
+  arm_speed_.setMaxOutput(100);
+  arm_speed_.setPulse(8192);
+  arm_speed_.setPID(0.02, 0, 0);
+  PositionPIDController arm_position(&arm_speed_);
+  arm_position.setAllowError(100);
+  arm_position.setInterval(5);
+  arm_position.setMaxIntegral(500);
+  arm_position.setMaxAcceleration(50000);
+  arm_position.setMaxSpeed(8192);
   MD4ch_child elevator_;
   Servo servo_(&htim4, TIM_CHANNEL_1);
 
-  std::vector<MD4ch_child*> motors = { &arm_, &elevator_};
+  std::vector<MD4ch_child*> motors = { &arm_drive, &elevator_};
 
   MD_4ch md_manager(&hcan1, &motors, 0x301);
 
@@ -167,16 +184,15 @@ int main(void)
   std::vector<m2006*> m2006s = { &upper, &downer };
   m2006_manager m2006manager(&m2006s, &hcan1);
   manager_address = &m2006manager;
-
-  arm_.setMode(Mode::OPENLOOP);
-  elevator_.setMode(Mode::OPENLOOP);
   //arm_.setOut(-30); //-で時計回り
   //elevator_.setOut(-50); //正で上がる
-  Loader loader(&servo_, &arm_, &elevator_, &position_upper, &position_downer);
-
+  //Loader loader(&servo_, &arm_position, &elevator_, &position_upper, &position_downer);
+/*
   loader.init();
   loader.shooterMove(true);
   loader.shooterInterrupt(true, true);
+*/
+  arm_speed_.setTarget(4000); //スピードチェック
 
   /* USER CODE END 2 */
 
@@ -217,6 +233,7 @@ int main(void)
 	  */
 
 	  // 射出への装填
+	  /*
 	  if (flag) {
 		  if (ms_counter % 500 == 0) {
 			  md_manager.send();
@@ -230,6 +247,7 @@ int main(void)
 
 		  flag = false;
 	  }
+	  */
 
 	  /*
 	  //サーボ
@@ -246,6 +264,20 @@ int main(void)
 		  flag = false;
 	  }
 	  */
+
+	  //PIDの調整
+	  if (flag) {
+		  if (ms_counter % 20 == 0) {
+			  md_manager.send();
+		  }
+		  if (ms_counter % 5 == 0) {
+			  arm_speed_.update();
+		  }
+		  if (ms_counter % 10 == 0) {
+
+		  }
+		  ms_counter = false;
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -330,6 +362,56 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 0;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 0;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 0;
+  if (HAL_TIM_Encoder_Init(&htim1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
 
 }
 
@@ -469,6 +551,10 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM4_Init 2 */
 
   /* USER CODE END TIM4_Init 2 */
@@ -516,6 +602,7 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
@@ -523,6 +610,16 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pin : PD3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
