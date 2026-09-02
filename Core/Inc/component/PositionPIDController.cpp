@@ -77,7 +77,6 @@ void PositionPIDController::update(){
 
 		if (std::fabs(error) <= allowError){
 			error = 0.0f;
-			integral = 0.0f;
 			derivative = 0.0f;
 		} else {
 			proportional = error * gain.kp;
@@ -86,7 +85,7 @@ void PositionPIDController::update(){
 			if (integral > max_integral) integral = max_integral;
 			if (integral < -max_integral) integral = -max_integral;
 
-			derivative = gain.kd * (now_angle - last_angle) / dt;
+			derivative = gain.kd * (last_angle - now_angle) / dt;
 		}
 
 		last_angle = now_angle;
