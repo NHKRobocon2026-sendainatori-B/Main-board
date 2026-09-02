@@ -20,7 +20,7 @@ enum class Mode{
 	ENCODER
 };
 
-class MD4ch_child : Actuator{
+class MD4ch_child :　public Actuator{
 public:
 	MD4ch_child();
 	virtual ~MD4ch_child();
