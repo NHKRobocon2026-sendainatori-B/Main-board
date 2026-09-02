@@ -86,7 +86,7 @@ void PositionPIDController::update(){
 			if (integral > max_integral) integral = max_integral;
 			if (integral < -max_integral) integral = -max_integral;
 
-			derivative = gain.kd * (now_angle - last_angle) / dt;
+			derivative = gain.kd * (last_angle - now_angle) / dt;
 		}
 
 		last_angle = now_angle;
@@ -111,7 +111,7 @@ void PositionPIDController::update(){
 			target_speed = speed;
 		}
 
-		speed_pid_->setTarget(target_speed);
+		speed_pid_->setTarget(static_cast<int16_t>(target_speed));
 
 		last_error = error;
 	}

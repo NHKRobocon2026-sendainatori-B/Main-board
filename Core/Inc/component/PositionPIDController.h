@@ -45,7 +45,7 @@ public:
 private:
 
 	int32_t target = 0;
-	int16_t target_speed = 0; //現在の出力
+	float target_speed = 0.0f; //現在の出力
 	int32_t max_acceleration = 100; //最大加速
 
 	PIDgain gain = {
