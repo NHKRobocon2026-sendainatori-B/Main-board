@@ -77,6 +77,7 @@ void PositionPIDController::update(){
 
 		if (std::fabs(error) <= allowError){
 			error = 0.0f;
+			integral = 0.0f;
 			derivative = 0.0f;
 		} else {
 			proportional = error * gain.kp;
@@ -110,7 +111,7 @@ void PositionPIDController::update(){
 			target_speed = speed;
 		}
 
-		speed_pid_->setTarget(target_speed);
+		speed_pid_->setTarget(static_cast<int16_t>(target_speed));
 
 		last_error = error;
 	}
