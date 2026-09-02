@@ -11,6 +11,7 @@
 #define INC_COMPONENT_MD4CH_CHILD_H_
 
 #include "main.h"
+#include "private/Actuator.h"
 
 enum class Mode{
 	STOP,
@@ -19,18 +20,19 @@ enum class Mode{
 	ENCODER
 };
 
-class MD4ch_child{
+class MD4ch_child : Actuator{
 public:
 	MD4ch_child();
 	virtual ~MD4ch_child();
 
 	void setMode(Mode _mode);
 	void setOut(int16_t _out);
+	void move(int16_t _out) override;
 	Mode getMode();
 	int16_t getOut();
 
-	void lock();
-	void unlock();
+	void lock() override;
+	void unlock() override;
 
 private:
 	Mode mode = Mode::OPENLOOP;

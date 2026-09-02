@@ -31,6 +31,13 @@ void MD4ch_child::setOut(int16_t _out){
 	out = _out;
 }
 
+/* 出力を変更(PIDをそのまま使う際、オープンループ専用) */
+void MD4ch_child::move(int16_t _out) {
+	if (locked) return;
+	if (getMode() != Mode::OPENLOOP) return;
+	out = _out;
+}
+
 /* モードを取得 */
 Mode MD4ch_child::getMode(){
 	return mode;
