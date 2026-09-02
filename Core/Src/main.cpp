@@ -130,15 +130,17 @@ int main(void)
 
   std::vector<MD4ch_child*> MD4ch_childs = { &shooter_root };
 
-  MD_4ch MD4ch_manager(&hcan1, &MD4ch_childs, 0x302);
+  MD_4ch MD4ch_manager(&hcan1, &MD4ch_childs, 0x301);
   Shooter shooter(&shooter_root, &shooter_tip, &shooter_servo);
   shooter.init();
   //雑巾射出用テスト
-  shooter.open_servo();
-  shooter_tip.setMax(100);
+
+  shooter_servo.move(130);
+  shooter_tip.setMax(110);
   shooter.move_ESC();
   shooter.stop_ESC();
   shooter.close_servo();
+  //shooter.move_ESC();
   HAL_Delay(1000);
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
@@ -163,12 +165,10 @@ int main(void)
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-
-  shooter.move_ESC();
   shooter.move_Motor(-40);
+  //shooter.close_servo();
 
   /* USER CODE END 2 */
-
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -214,11 +214,15 @@ int main(void)
 		  }
 		  flag = false;
 	  }
+
 	  if (intrrupt_flag){
-		  if (intrrupt_count == 3){
-			  shooter.open_servo();
+		  if (intrrupt_count == 3) {
+			  shooter.move_ESC();
 		  }
-		  if (intrrupt_count == 4){
+		  if (intrrupt_count == 6){
+			  shooter_servo.move(130);
+		  }
+		  if (intrrupt_count == 7){
 			  shooter.stop_ESC();
 			  shooter.stop_Motor();
 		  }
@@ -508,15 +512,15 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
-  /*Configure GPIO pin : PD7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  /*Configure GPIO pin : PD3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -543,7 +547,7 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 }
 
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	if (GPIO_Pin == GPIO_PIN_7){
+	if (GPIO_Pin == GPIO_PIN_3){
 		intrrupt_count++;
 		intrrupt_flag = true;
 	}
