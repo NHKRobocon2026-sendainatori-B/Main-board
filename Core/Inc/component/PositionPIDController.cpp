@@ -112,6 +112,8 @@ void PositionPIDController::update(){
 		}
 
 		speed_pid_->setTarget(target_speed);
+
+		last_error = error;
 	}
 }
 
