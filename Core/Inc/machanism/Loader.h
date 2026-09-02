@@ -24,7 +24,7 @@ enum SHOOTERLOAD {
 
 class Loader {
 public:
-	Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, PositionPIDController* importer_upper_, PositionPIDController* importer_below_);
+	Loader(Servo* shovel_, PositionPIDController* arm_, PositionPIDController* elevator_, PositionPIDController* importer_upper_, PositionPIDController* importer_below_);
 	virtual ~Loader();
 
 	void init();
@@ -40,14 +40,13 @@ public:
 
 private:
 	Servo* shovel_;
-	MD4ch_child* arm_;
-	MD4ch_child* elevator_;
+	PositionPIDController* arm_;
+	PositionPIDController* elevator_;
 	PositionPIDController* importer_upper_;
 	PositionPIDController* importer_below_;
 
 	uint32_t ms_counter = 0;
 	uint16_t elapsed_time = 0;
-	std::array<uint32_t, 8> flag_counters;
 
 	std::array<Future<bool>, 8> futures;
 	std::map<uint8_t, Promise<bool>> promises;

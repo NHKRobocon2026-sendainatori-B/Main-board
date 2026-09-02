@@ -32,24 +32,24 @@
 #define LOADMOTORINADDRESS 6
 #define LOADUPPERADDRESS 7
 
-#define SPEED_KP 0.1281f
-#define SPEED_KI 0.01f
-#define SPEED_KD 0.0009184f
-#define SPEED_INTERVAL 5
-#define SPEED_ALLOWERROR 300
-#define SPEED_INTEGRAL 100
-#define SPPED_MAXOUTPUT 6000
-#define SPPED_PULSE 8192
+#define IMPORT_SPEED_KP 0.1281f
+#define IMPORT_SPEED_KI 0.01f
+#define IMPORT_SPEED_KD 0.0009184f
+#define IMPORT_SPEED_INTERVAL 5
+#define IMPORT_SPEED_ALLOWERROR 300
+#define IMPORT_SPEED_INTEGRAL 100
+#define IMPORT_SPPED_MAXOUTPUT 6000
+#define IMPORT_SPPED_PULSE 8192
 
-#define POSITION_KP 0.018f
-#define POSITION_KI 0.001f
-#define POSITION_KD 0.0f
-#define POSITION_INTERVAL 10
-#define POSITION_ACCEL 50000
-#define POSITION_INTEGRAL 100
-#define POSITION_MAXSPEED 9000
+#define IMPORT_POSITION_KP 0.018f
+#define IMPORT_POSITION_KI 0.001f
+#define IMPORT_POSITION_KD 0.0f
+#define IMPORT_POSITION_INTERVAL 10
+#define IMPORT_POSITION_ACCEL 50000
+#define IMPORT_POSITION_INTEGRAL 100
+#define IMPORT_POSITION_MAXSPEED 9000
 
-Loader::Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, PositionPIDController* importer_upper_, PositionPIDController* importer_below_)
+Loader::Loader(Servo* shovel_, PositionPIDController* arm_, PositionPIDController* elevator_, PositionPIDController* importer_upper_, PositionPIDController* importer_below_)
 : shovel_(shovel_), arm_(arm_), elevator_(elevator_), importer_upper_(importer_upper_), importer_below_(importer_below_)
 {
 	// TODO Auto-generated constructor stub
@@ -58,7 +58,7 @@ Loader::Loader(Servo* shovel_, MD4ch_child* arm_, MD4ch_child* elevator_, Positi
 Loader::~Loader() {
 	// TODO Auto-generated destructor stub
 }
-
+/*
 void Loader::init() {
 	promises[SHOOTERUPPERADDRESS] = Promise<bool>(); //射出装填, 上にすこしずつ
 	promises[SHOOTERARMADDRESS] = Promise<bool>(); //射出装填, 交互にモーターを回す
@@ -71,33 +71,31 @@ void Loader::init() {
 
 	shovel_->setting(1000, 2000);
 
-	arm_->setMode(Mode::OPENLOOP);
-	elevator_->setMode(Mode::OPENLOOP);
+	importer_upper_->speed_pid_->setInterval(IMPORT_SPEED_INTERVAL);
+	importer_upper_->speed_pid_->setMaxIntegral(IMPORT_SPEED_INTEGRAL);
+	importer_upper_->speed_pid_->setMaxOutput(IMPORT_SPPED_MAXOUTPUT);
+	importer_upper_->speed_pid_->setPID(IMPORT_SPEED_KP, IMPORT_SPEED_KI, IMPORT_SPEED_KD);
+	importer_upper_->speed_pid_->setPulse(IMPORT_SPPED_PULSE);
+	importer_upper_->setInterval(IMPORT_POSITION_INTERVAL);
+	importer_upper_->setMaxAcceleration(IMPORT_POSITION_ACCEL);
+	importer_upper_->setMaxIntegral(IMPORT_POSITION_INTEGRAL);
+	importer_upper_->setMaxSpeed(IMPORT_POSITION_MAXSPEED);
+	importer_upper_->setPID(IMPORT_POSITION_KP, IMPORT_POSITION_KI, IMPORT_POSITION_KD);
 
-	importer_upper_->speed_pid_->setInterval(SPEED_INTERVAL);
-	importer_upper_->speed_pid_->setMaxIntegral(SPEED_INTEGRAL);
-	importer_upper_->speed_pid_->setMaxOutput(SPPED_MAXOUTPUT);
-	importer_upper_->speed_pid_->setPID(SPEED_KP, SPEED_KI, SPEED_KD);
-	importer_upper_->speed_pid_->setPulse(SPPED_PULSE);
-	importer_upper_->setInterval(POSITION_INTERVAL);
-	importer_upper_->setMaxAcceleration(POSITION_ACCEL);
-	importer_upper_->setMaxIntegral(POSITION_INTEGRAL);
-	importer_upper_->setMaxSpeed(POSITION_MAXSPEED);
-	importer_upper_->setPID(POSITION_KP, POSITION_KI, POSITION_KD);
-
-	importer_below_->speed_pid_->setInterval(SPEED_INTERVAL);
-	importer_below_->speed_pid_->setMaxIntegral(SPEED_INTEGRAL);
-	importer_below_->speed_pid_->setMaxOutput(SPPED_MAXOUTPUT);
-	importer_below_->speed_pid_->setPID(SPEED_KP, SPEED_KI, SPEED_KD);
-	importer_below_->speed_pid_->setPulse(SPPED_PULSE);
-	importer_below_->setInterval(POSITION_INTERVAL);
-	importer_below_->setMaxAcceleration(POSITION_ACCEL);
-	importer_below_->setMaxIntegral(POSITION_INTEGRAL);
-	importer_below_->setMaxSpeed(POSITION_MAXSPEED);
-	importer_below_->setPID(POSITION_KP, POSITION_KI, POSITION_KD);
+	importer_below_->speed_pid_->setInterval(IMPORT_SPEED_INTERVAL);
+	importer_below_->speed_pid_->setMaxIntegral(IMPORT_SPEED_INTEGRAL);
+	importer_below_->speed_pid_->setMaxOutput(IMPORT_SPPED_MAXOUTPUT);
+	importer_below_->speed_pid_->setPID(IMPORT_SPEED_KP, IMPORT_SPEED_KI, IMPORT_SPEED_KD);
+	importer_below_->speed_pid_->setPulse(IMPORT_SPPED_PULSE);
+	importer_below_->setInterval(IMPORT_POSITION_INTERVAL);
+	importer_below_->setMaxAcceleration(IMPORT_POSITION_ACCEL);
+	importer_below_->setMaxIntegral(IMPORT_POSITION_INTEGRAL);
+	importer_below_->setMaxSpeed(IMPORT_POSITION_MAXSPEED);
+	importer_below_->setPID(IMPORT_POSITION_KP, IMPORT_POSITION_KI, IMPORT_POSITION_KD);
 }
-
+*/
 /*shooterを動かすかを変更、もし机から雑巾を格納中ならfalseを返す*/
+/*
 bool Loader::shooterMove(bool move){
 	if (locked) return false;
 	if (state == State::DESK_LOAD) return false;
@@ -109,8 +107,9 @@ bool Loader::shooterMove(bool move){
 	state = (move) ? State::SHOOTER_MOVE : State::IDLE;
 	return true;
 }
-
+*/
 /*机からの装填*/
+/*
 bool Loader::loadbullet(){
 	if (locked) return false;
 	if (state == State::SHOOTER_MOVE) return false;
@@ -122,8 +121,9 @@ bool Loader::loadbullet(){
 	elevator_->setOut(-LOADAPPDOWNOUT);
 	return true;
 }
-
+*/
 /* フォトインタラプタの割り込みが来る, shooterからフォトインタラプタの割り込み一定回ごとに呼び出して */
+/*
 void Loader::shooterInterrupt(SHOOTERLOAD mode){
 	if (state != State::SHOOTER_MOVE) return;
 	switch (mode) {
@@ -147,8 +147,9 @@ void Loader::shooterInterrupt(SHOOTERLOAD mode){
 		break;
 	}
 }
-
+*/
 /* 射出装填用のアップデート, 10msごとに更新 */
+/*
 void Loader::shooterUpdate(){
 	if (state != State::SHOOTER_MOVE) return;
 	ms_counter += 10;
@@ -167,8 +168,9 @@ void Loader::shooterUpdate(){
 		}
 	}
 }
-
+*/
 /* 机から装填のアップデート, 10msごとに更新 */
+/*
 void Loader::bulletUpdate(){
 
 	if (state != State::DESK_LOAD) return;
@@ -231,7 +233,8 @@ void Loader::bulletUpdate(){
 		break;
 	}
 }
-
+*/
+/*
 void Loader::lock(){
 	locked = true;
 	shovel_->lock();
@@ -240,7 +243,8 @@ void Loader::lock(){
 	importer_upper_->lock();
 	importer_below_->lock();
 }
-
+*/
+/*
 void Loader::unlock(){
 	locked = false;
 	shovel_->unlock();
@@ -249,3 +253,4 @@ void Loader::unlock(){
 	importer_upper_->unlock();
 	importer_below_->unlock();
 }
+*/
