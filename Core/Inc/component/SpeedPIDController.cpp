@@ -12,7 +12,7 @@ SpeedPIDController::SpeedPIDController(Actuator* _act, Encoder* _enc)
 : act(_act), enc(_enc)
 {
 	// TODO Auto-generated constructor stub
-	last_angle = enc->getAngle();
+	last_angle = (enc != nullptr) ? enc->getAngle() : 0;
 }
 
 SpeedPIDController::~SpeedPIDController() {
@@ -82,7 +82,6 @@ void SpeedPIDController::update(){
 
 	if (std::fabs(error) <= allowError){
 		error = 0.0f;
-		integral = 0.0f;
 		derivative = 0.0f;
 	} else {
 		proportional = error * gain.kp;
@@ -91,7 +90,7 @@ void SpeedPIDController::update(){
 		if (integral > max_integral) integral = max_integral;
 		if (integral < -max_integral) integral = -max_integral;
 
-		derivative = gain.kd * (now_rpm - last_rpm) / dt;
+		derivative = gain.kd * (last_rpm - now_rpm) / dt;
 	}
 
 	last_rpm = now_rpm;
