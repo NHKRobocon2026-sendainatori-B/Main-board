@@ -149,12 +149,12 @@ int main(void)
   arm_speed_.setMaxOutput(100);
   arm_speed_.setPulse(8192);
   arm_speed_.setPID(0.02, 0, 0);
-  PositionPIDController arm_position(&arm_speed_);
-  arm_position.setAllowError(100);
-  arm_position.setInterval(5);
-  arm_position.setMaxIntegral(500);
-  arm_position.setMaxAcceleration(50000);
-  arm_position.setMaxSpeed(8192);
+  PositionPIDController arm_position_(&arm_speed_);
+  arm_position_.setAllowError(100);
+  arm_position_.setInterval(5);
+  arm_position_.setMaxIntegral(500);
+  arm_position_.setMaxAcceleration(50000);
+  arm_position_.setMaxSpeed(8192);
   MD4ch_child elevator_;
   Servo servo_(&htim4, TIM_CHANNEL_1);
 
@@ -193,6 +193,7 @@ int main(void)
   loader.shooterInterrupt(true, true);
 */
   arm_speed_.setTarget(4000); //スピードチェック
+  //arm_position_.setTarget(3000); //ポジションチェック
 
   /* USER CODE END 2 */
 
@@ -276,7 +277,7 @@ int main(void)
 		  if (ms_counter % 10 == 0) {
 
 		  }
-		  ms_counter = false;
+		  flag = false;
 	  }
   }
   /* USER CODE END 3 */
