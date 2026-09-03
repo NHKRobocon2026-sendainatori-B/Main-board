@@ -94,6 +94,14 @@ void Loader::init() {
 	importer_below_->setPID(IMPORT_POSITION_KP, IMPORT_POSITION_KI, IMPORT_POSITION_KD);
 }
 */
+
+void Loader::init() {
+	//promiseの設定
+
+	//PIDの定数の設定
+
+	//その他セッティング
+}
 /*shooterを動かすかを変更、もし机から雑巾を格納中ならfalseを返す*/
 /*
 bool Loader::shooterMove(bool move){
@@ -108,6 +116,20 @@ bool Loader::shooterMove(bool move){
 	return true;
 }
 */
+bool Loader::shooterMove(bool move) {
+	if (locked) return false; //ロック中のためエラー
+	if (state == State::DESK_LOAD) return false; //机装填中、一応エラート
+	if (move && state == State::IDLE) {
+		//射出を動かす
+		state = State::SHOOTER_MOVE;
+		return true;
+	} else　if (!move && state == State::SHOOTER_MOVE) {
+		//射出を止める, futureをリセット
+		state = State::IDLE;
+		return true;
+	}
+	return true; //変化はしないが、問題は発生していないため問題なし
+}
 /*机からの装填*/
 /*
 bool Loader::loadbullet(){
@@ -122,6 +144,13 @@ bool Loader::loadbullet(){
 	return true;
 }
 */
+bool Loader::loadbullet() {
+	if (locked) return false; //ロック中のためエラー
+	if (state == State::SHOOTER_MOVE) return false; //射出が動いているため、エラー
+	state = State::DESK_LOAD;
+	//いろいろ設定
+	return true; //成功
+}
 /* フォトインタラプタの割り込みが来る, shooterからフォトインタラプタの割り込み一定回ごとに呼び出して */
 /*
 void Loader::shooterInterrupt(SHOOTERLOAD mode){
@@ -148,6 +177,17 @@ void Loader::shooterInterrupt(SHOOTERLOAD mode){
 	}
 }
 */
+void Loader::shooterInterrupt(SHOOTERLOAD mode) {
+	switch (mode) {
+	//PIDの設定？
+	case SHOOTERLOAD::ARMPLUS:
+		break;
+	case SHOOTERLOAD::ARMMINUS:
+		break;
+	case SHOOTERLOAD::ELEVATE:
+		break;
+	}
+}
 /* 射出装填用のアップデート, 10msごとに更新 */
 /*
 void Loader::shooterUpdate(){
@@ -244,6 +284,10 @@ void Loader::lock(){
 	importer_below_->lock();
 }
 */
+void Loader::lock(){
+	locked = true;
+	//全てをロック
+}
 /*
 void Loader::unlock(){
 	locked = false;
@@ -254,3 +298,7 @@ void Loader::unlock(){
 	importer_below_->unlock();
 }
 */
+void Loader::unlock() {
+	locked = false;
+	//全てをアンロック
+}
