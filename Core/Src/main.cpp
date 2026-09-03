@@ -135,13 +135,12 @@ int main(void)
   shooter.init();
   //雑巾射出用テスト
 
-  shooter_servo.move(130);
-  shooter_tip.setMax(110);
+  shooter_servo.move(100);
+  shooter_tip.setMax(85);
   shooter.move_ESC();
   shooter.stop_ESC();
-  shooter.close_servo();
-  //shooter.move_ESC();
-  HAL_Delay(1000);
+  shooter_servo.move(145);
+   HAL_Delay(1000);
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -165,7 +164,8 @@ int main(void)
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-  shooter.move_Motor(-40);
+  shooter.move_Motor(-52);
+  shooter.move_ESC();
   //shooter.close_servo();
 
   /* USER CODE END 2 */
@@ -216,13 +216,10 @@ int main(void)
 	  }
 
 	  if (intrrupt_flag){
-		  if (intrrupt_count == 3) {
-			  shooter.move_ESC();
+		  if (intrrupt_count == 53){
+			  shooter_servo.move(100);
 		  }
-		  if (intrrupt_count == 6){
-			  shooter_servo.move(130);
-		  }
-		  if (intrrupt_count == 7){
+		  if (intrrupt_count == 58){
 			  shooter.stop_ESC();
 			  shooter.stop_Motor();
 		  }
