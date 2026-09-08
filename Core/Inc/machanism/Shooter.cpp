@@ -11,9 +11,11 @@
 #define LOAD_OUT -25 //装填時の速度
 #define AGAIN_OUT -25 //再スタートを待つ速度
 #define ESC_OUT 100 //ESCの出力、絶対変更
-#define ESC_MAX 100
-#define SERVO_ANGLE_CLOSE 179 //サーボのアングル、絶対変更
-#define SERVO_ANGLE_OPEN 20 //サーボのアングル開いたとき、絶対変更
+#define ESC_MAX 72
+#define SERVO_0 1000
+#define SERVO_180 2000
+#define SERVO_ANGLE_CLOSE 150 //サーボのアングル、絶対変更
+#define SERVO_ANGLE_OPEN 100 //サーボのアングル開いたとき、絶対変更
 
 Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
 : motor(_motor), esc(_esc), servo(_servo)
@@ -27,6 +29,8 @@ Shooter::~Shooter() {
 
 void Shooter::init(){
 	motor->setMode(Mode::OPENLOOP);
+	esc->setMax(ESC_MAX);
+	servo->setting(SERVO_0, SERVO_180);
 	stop_ESC();
 }
 
@@ -52,7 +56,7 @@ void Shooter::stop_Motor(){
 
 void Shooter::move_ESC(){
 	if (locked) return;
-	esc->move(ESC_OUT);
+	esc->move(ESC_MAX);
 }
 
 void Shooter::stop_ESC(){
