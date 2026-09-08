@@ -200,7 +200,7 @@ int main(void)
   	static m2006_manager m2006manager(&m2006s, &hcan1);
   	m2006_address = &m2006manager;
   	static MD_4ch MD4ch1(&hcan1, &steer_drives, 0x302);
-  	static MD_4ch MD4ch2(&hcan2, &motors2, 0x301);
+  	static MD_4ch MD4ch2(&hcan1, &motors2, 0x301);
   //送信関連終了********************************************************************************
 
   //CAN設定、フィルター
