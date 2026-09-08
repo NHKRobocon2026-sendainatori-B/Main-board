@@ -164,7 +164,7 @@ int main(void)
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-  shooter.move_Motor(-50);
+  shooter.move_Motor(-55);
   shooter.move_ESC();
   //shooter.close_servo();
 
