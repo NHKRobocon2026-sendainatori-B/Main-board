@@ -250,28 +250,6 @@ int main(void)
 		  m2006manager.sendtoCAN();
 		  flag = false;
 	  }
-	  */
-
-
-	  //雑巾射出用テスト
-	  if (flag) {
-		  if (ms_counter % 500 == 0){
-			  MD4ch_manager.send();
-		  }
-		  flag = false;
-	  }
-
-	  if (intrrupt_flag){
-		  if (intrrupt_count == 40){
-			  shooter_servo.move(100);
-			  shooter.stop_Motor();
-		  }
-		  if (intrrupt_count == 45){
-			  shooter.stop_ESC();
-		  }
-		  intrrupt_flag = false;
-	  }
-
   }
   /* USER CODE END 3 */
 }
