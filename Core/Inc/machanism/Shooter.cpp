@@ -44,7 +44,7 @@ bool Shooter::moveShooter(){
 }
 
 bool Shooter::grab() {
-	if (moving) return;
+	if (moving) return false;
 	close_servo();
 	return true;
 }
