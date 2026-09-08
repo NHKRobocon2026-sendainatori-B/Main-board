@@ -45,7 +45,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//Shooter設定用
+#define SHOOTER_SERVO_0 1000
+#define SHOOTER_SERVO_180 2000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -124,6 +126,11 @@ int main(void)
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  MD4ch_child shooter_root; //根元のモーター
+  ESC shooter_tip(&htim4, TIM_CHANNEL_1); //先端のESC
+  Servo shooter_servo(&htim4, TIM_CHANNEL_2); //先端のサーボ
+  //shooter_tip.setMax(50);
+  shooter_servo.setting(SHOOTER_SERVO_0, SHOOTER_SERVO_180);
 
   //ステアリング*******************************************************************************
     static std::vector<MD4ch_child*> steer_drives;
@@ -211,12 +218,14 @@ int main(void)
 
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
+  //ESC及びサーボをデバッグで回す際、割り込みは無効に
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
   HAL_UART_Receive_IT(&huart2, &uartRxbyte, 1); //UARTの割り込み
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -241,6 +250,28 @@ int main(void)
 		  m2006manager.sendtoCAN();
 		  flag = false;
 	  }
+	  */
+
+
+	  //雑巾射出用テスト
+	  if (flag) {
+		  if (ms_counter % 500 == 0){
+			  MD4ch_manager.send();
+		  }
+		  flag = false;
+	  }
+
+	  if (intrrupt_flag){
+		  if (intrrupt_count == 40){
+			  shooter_servo.move(100);
+			  shooter.stop_Motor();
+		  }
+		  if (intrrupt_count == 45){
+			  shooter.stop_ESC();
+		  }
+		  intrrupt_flag = false;
+	  }
+
   }
   /* USER CODE END 3 */
 }
@@ -461,6 +492,10 @@ static void MX_TIM4_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
