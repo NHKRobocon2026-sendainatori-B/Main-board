@@ -35,7 +35,7 @@
 
 #include <Manager.h>
 #include <Steering.h>
-
+#include <Shooter.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,9 +45,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-//Shooter設定用
-#define SHOOTER_SERVO_0 1000
-#define SHOOTER_SERVO_180 2000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -72,6 +69,7 @@ volatile uint16_t setZeroPin = 0;
 m2006_manager* m2006_address;
 Manager* maanger_address;
 Steering* steering_address;
+Shooter* shooter_address;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,11 +124,6 @@ int main(void)
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  MD4ch_child shooter_root; //根元のモーター
-  ESC shooter_tip(&htim4, TIM_CHANNEL_1); //先端のESC
-  Servo shooter_servo(&htim4, TIM_CHANNEL_2); //先端のサーボ
-  //shooter_tip.setMax(50);
-  shooter_servo.setting(SHOOTER_SERVO_0, SHOOTER_SERVO_180);
 
   //ステアリング*******************************************************************************
     static std::vector<MD4ch_child*> steer_drives;
@@ -181,7 +174,12 @@ int main(void)
   //ステアリング終了*******************************************************************************
 
   //射出**************************************************************************************
-  	static Shooter shooter(nullptr, nullptr, nullptr); //まだいらない
+  	MD4ch_child ShooterMotor;
+  	ESC ShooterEsc(&htim4, GPIO_PIN_2);
+  	Servo ShooterServo(&htim4, GPIO_PIN_1);
+  	static Shooter shooter(ShooterMotor, ShooterEsc, ShooterServo);
+  	shooter_address = &shooter;
+  	shooter.init();
   //射出終了***********************************************************************************
 
   //装填**************************************************************************************
@@ -193,14 +191,16 @@ int main(void)
   //オドメトリ終了*********************************************************************************
 
   //マネージャー**********************************************************************************
-  	static Manager manager(nullptr, nullptr, nullptr, &steering, &huart2);
+  	static Manager manager(nullptr, nullptr, &shooter, &steering, &huart2);
   	maanger_address = &manager;
   //マネージャー終了*******************************************************************************
 
   //送信関連***********************************************************************************
+  	std::vector<MD4ch_child*> motors2 = { &ShooterMotor };
   	static m2006_manager m2006manager(&m2006s, &hcan1);
   	m2006_address = &m2006manager;
   	static MD_4ch MD4ch1(&hcan1, &steer_drives, 0x302);
+  	static MD_4ch MD4ch2(&hcan2, &motors2, 0x301);
   //送信関連終了********************************************************************************
 
   //CAN設定、フィルター
@@ -240,6 +240,7 @@ int main(void)
 		  }
 		  if (ms_counter % 20 == 0) {
 			  MD4ch1.send();
+			  MD4ch2.send();
 		  }
 		  if (ms_counter % 99 == 0) {
 			  ProcessStatus status = steering.setZeroupdate();
@@ -533,6 +534,12 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
+  /*Configure GPIO pin : PD3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
   /*Configure GPIO pins : PD4 PD5 PD6 PD7 */
   GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -540,6 +547,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
   HAL_NVIC_SetPriority(EXTI4_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
@@ -582,6 +592,9 @@ extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		} else if (status == ProcessStatus::SUCCESS) {
 			maanger_address->sendSetzero(true);
 		}
+	} else if (GPIO_Pin == GPIO_PIN_3) {
+		if (shooter_address == nullptr) return;
+		shooter_address->Interrupt();
 	}
 }
 
