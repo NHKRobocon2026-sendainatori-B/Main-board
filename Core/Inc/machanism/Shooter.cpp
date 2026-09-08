@@ -32,6 +32,7 @@ void Shooter::init(){
 	esc->setMax(ESC_MAX);
 	servo->setting(SERVO_0, SERVO_180);
 	stop_ESC();
+	open_servo();
 }
 
 bool Shooter::moveShooter(){
@@ -43,6 +44,7 @@ bool Shooter::moveShooter(){
 }
 
 bool Shooter::grab() {
+	if (moving) return;
 	close_servo();
 	return true;
 }
