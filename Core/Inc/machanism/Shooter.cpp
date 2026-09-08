@@ -34,14 +34,16 @@ void Shooter::init(){
 	stop_ESC();
 }
 
-bool Shooter::moveShooter(bool move){
-	//装填のモード変更
-	//もし失敗したら下のtrueを変化
-	moving = move;
-	if (!move) {
-		again_flag = true;
-		move_Motor(AGAIN_OUT);
-	}
+bool Shooter::moveShooter(){
+	moving = true;
+	counter = 0; //リセット
+	move_Motor(MOTOR_OUT);
+	move_ESC();
+	return true;
+}
+
+bool Shooter::grab() {
+	close_servo();
 	return true;
 }
 
@@ -74,35 +76,15 @@ void Shooter::close_servo(){
 }
 
 void Shooter::Interrupt(){
-	if (again_flag){
-		if (counter % 6 == 0) {
-			move_Motor(LOAD_OUT);
-			again_flag = false;
-		}
-	} else {
-		if (counter % 6 == 0) {
-			move_Motor(LOAD_OUT);
-		}
-		if (counter % 6 == 1) {
-			if (start_flag) {
-				open_servo();
-				start_flag = false;
-			}
-			//装填を上にあげる
-		}
-		if (counter % 6 == 2) {
-			close_servo();
-		}
-		if (counter % 6 == 3) {
-			move_ESC();
-			move_Motor(MOTOR_OUT);
-		}
-		if (counter % 6 == 5) {
-			open_servo();
-			stop_ESC();
-		}
-	}
+	if (!moving) return;
 	counter++;
+	if (counter == 40) {
+		open_servo();
+		stop_Motor();
+	} else if (counter == 45) {
+		stop_ESC();
+		moving = false;
+	}
 }
 
 void Shooter::lock(){

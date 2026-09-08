@@ -20,7 +20,8 @@ public:
 
 	void init();
 
-	bool moveShooter(bool move);
+	bool moveShooter();
+	bool grab();
 
 	void move_Motor(int16_t out);
 	void stop_Motor();
