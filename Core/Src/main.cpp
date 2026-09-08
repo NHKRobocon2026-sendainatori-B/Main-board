@@ -175,8 +175,8 @@ int main(void)
 
   //射出**************************************************************************************
   	MD4ch_child ShooterMotor;
-  	ESC ShooterEsc(&htim4, GPIO_PIN_2);
-  	Servo ShooterServo(&htim4, GPIO_PIN_1);
+  	ESC ShooterEsc(&htim4, TIM_CHANNEL_1);
+  	Servo ShooterServo(&htim4, TIM_CHANNEL_2);
   	static Shooter shooter(&ShooterMotor, &ShooterEsc, &ShooterServo);
   	shooter_address = &shooter;
   	shooter.init();
