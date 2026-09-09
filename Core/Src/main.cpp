@@ -66,6 +66,7 @@ UART_HandleTypeDef huart2;
 volatile bool flag = false;
 int32_t ms_counter = 0;
 m2006_manager* manager_address;
+int32_t angle = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -142,19 +143,21 @@ int main(void)
 
   MD4ch_child arm_drive;
   RotaryEncoder arm_enc_(&htim1);
+  arm_enc_.start();
   SpeedPIDController arm_speed_(&arm_drive, &arm_enc_);
   arm_speed_.setAllowError(100);
   arm_speed_.setInterval(5);
   arm_speed_.setMaxIntegral(500);
-  arm_speed_.setMaxOutput(100);
-  arm_speed_.setPulse(8192);
-  arm_speed_.setPID(0.02, 0, 0);
+  arm_speed_.setMaxOutput(40);
+  arm_speed_.setPulse(2048);
+  arm_speed_.setPID(1.0, 0.00001, 0.002);
   PositionPIDController arm_position_(&arm_speed_);
   arm_position_.setAllowError(100);
-  arm_position_.setInterval(5);
-  arm_position_.setMaxIntegral(500);
+  arm_position_.setInterval(10);
+  arm_position_.setMaxIntegral(2000);
   arm_position_.setMaxAcceleration(50000);
-  arm_position_.setMaxSpeed(8192);
+  arm_position_.setMaxSpeed(1200);
+  arm_position_.setPID(0.8, 0.002, 0.0002);
   MD4ch_child elevator_;
   Servo servo_(&htim4, TIM_CHANNEL_1);
 
@@ -192,8 +195,10 @@ int main(void)
   loader.shooterMove(true);
   loader.shooterInterrupt(true, true);
 */
-  arm_speed_.setTarget(4000); //スピードチェック
-  //arm_position_.setTarget(3000); //ポジションチェック
+  //arm_position_.disable();
+  //arm_speed_.setTarget(30); //スピードチェック
+  arm_drive.move(40);
+  //arm_position_.setTarget(1024); //ポジションチェック
 
   /* USER CODE END 2 */
 
@@ -272,10 +277,11 @@ int main(void)
 			  md_manager.send();
 		  }
 		  if (ms_counter % 5 == 0) {
-			  arm_speed_.update();
+			  //arm_speed_.update();
+			  angle = arm_enc_.getAngle();
 		  }
 		  if (ms_counter % 10 == 0) {
-
+			  //arm_position_.update();
 		  }
 		  flag = false;
 	  }
