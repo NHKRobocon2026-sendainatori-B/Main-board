@@ -25,6 +25,8 @@ public:
 	void updateOdometry();
 	void sendSetzero(bool success);
 
+	void sendSteeringAngle();
+
 	bool lock();
 	bool unlock();
 
