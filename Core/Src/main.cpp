@@ -238,6 +238,9 @@ int main(void)
 				  manager.sendSetzero(false);
 			  }
 		  }
+		  if (ms_counter % 100 == 0) {
+			  manager.sendSteeringAngle();
+		  }
 		  m2006manager.sendtoCAN();
 		  flag = false;
 	  }
