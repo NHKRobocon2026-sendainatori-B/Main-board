@@ -12,7 +12,16 @@ RotaryEncoder::RotaryEncoder(TIM_HandleTypeDef* _tim_handle)
 : tim_handle(_tim_handle)
 {
 	// TODO Auto-generated constructor stub
-
+#if defined(TIM2) && defined(TIM5)
+    if (tim_handle->Instance == TIM2 || tim_handle->Instance == TIM5) {
+        is_32bit = true;
+    }
+#elif defined(TIM2)
+    if (tim_handle->Instance == TIM2) {
+        is_32bit = true;
+    }
+#endif
+    start();
 }
 
 RotaryEncoder::~RotaryEncoder() {
@@ -34,8 +43,14 @@ void RotaryEncoder::stop(){
 /*　アップデート、一定間隔で呼び出したら確実では？　*/
 void RotaryEncoder::updateAngle(){
 	uint32_t current_counter = __HAL_TIM_GET_COUNTER(tim_handle);
+	int32_t diff = 0;
 
-	int32_t diff = (int32_t)(current_counter - (uint32_t)last_counter_value);
+	if (is_32bit) {
+		diff = (int32_t)(current_counter - last_counter_value);
+	} else {
+		diff = (int16_t)(current_counter - last_counter_value);
+	}
+
 	total_count += diff;
 	last_counter_value = current_counter;
 }
