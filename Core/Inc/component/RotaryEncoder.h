@@ -27,6 +27,8 @@ private:
 	TIM_HandleTypeDef* tim_handle;
 	int32_t total_count;
 	uint32_t last_counter_value;
+
+	bool is_32bit = false;
 };
 
 #endif /* INC_COMPONENT_ROTARYENCODER_H_ */
