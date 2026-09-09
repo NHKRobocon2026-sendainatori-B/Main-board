@@ -123,7 +123,7 @@ bool Loader::shooterMove(bool move) {
 		//射出を動かす
 		state = State::SHOOTER_MOVE;
 		return true;
-	} else　if (!move && state == State::SHOOTER_MOVE) {
+	} else if (!move && state == State::SHOOTER_MOVE) {
 		//射出を止める, futureをリセット
 		state = State::IDLE;
 		return true;
