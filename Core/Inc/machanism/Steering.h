@@ -42,7 +42,9 @@ public:
 	ProcessStatus setZeroupdate();
 
 	void updateSpeed();
-	void updatePosition();
+	std::array<int32_t, 4> updatePosition();
+
+	void sendSteeringAngle();
 
 	void lock();
 	void unlock();

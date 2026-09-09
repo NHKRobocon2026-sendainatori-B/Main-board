@@ -146,6 +146,34 @@ void Manager::sendSetzero(bool success){
 	HAL_UART_Transmit(huart_, message, 3, 10);
 }
 
+/* ステアリングのギアの角度を送る */
+void Manager::sendSteeringAngle(){
+	auto list = steering_->sendSteeringAngle();
+
+	uint8_t message[18];
+
+	message[0] = 0x81;
+	message[1] = static_cast<uint8_t>((list[0] >> 24) & 0xFF);
+	message[2] = static_cast<uint8_t>((list[0] >> 16) & 0xFF);
+	message[3] = static_cast<uint8_t>((list[0] >> 8) & 0xFF);
+	message[4] = static_cast<uint8_t>(list[0] & 0xFF);
+	message[5] = static_cast<uint8_t>((list[1] >> 24) & 0xFF);
+	message[6] = static_cast<uint8_t>((list[1] >> 16) & 0xFF);
+	message[7] = static_cast<uint8_t>((list[1] >> 8) & 0xFF);
+	message[8] = static_cast<uint8_t>(list[1] & 0xFF);
+	message[9] = static_cast<uint8_t>((list[2] >> 24) & 0xFF);
+	message[10] = static_cast<uint8_t>((list[2] >> 16) & 0xFF);
+	message[11] = static_cast<uint8_t>((list[2] >> 8) & 0xFF);
+	message[12] = static_cast<uint8_t>(list[2] & 0xFF);
+	message[13] = static_cast<uint8_t>((list[3] >> 24) & 0xFF);
+	message[14] = static_cast<uint8_t>((list[3] >> 16) & 0xFF);
+	message[15] = static_cast<uint8_t>((list[3] >> 8) & 0xFF);
+	message[16] = static_cast<uint8_t>(list[3] & 0xFF);
+	message[17] = 0x90;
+
+	HAL_UART_Transmit(huart_, message, 10, 10);
+}
+
 /* タイマー割り込みに入れる, オドメトリデータを取得送信 */
 void Manager::updateOdometry(){
 	//odometryからデータを取得

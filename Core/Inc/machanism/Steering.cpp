@@ -160,6 +160,14 @@ void Steering::updatePosition(){
 	}
 }
 
+std::array<int32_t, 4> Steering::sendSteeringAngle() {
+	auto list = std::array<int32_t, 4>();
+	for (size_t i = 0; i < 4; i++) {
+		list[i] = (*units)[i]->getAngle();
+	}
+	return list;
+}
+
 void Steering::lock(){
 	locked = true;
 	for (auto unit : *units){
