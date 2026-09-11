@@ -39,6 +39,7 @@ void Steering::init(){
 //入る値はパーセント、-1~1, ros2側のxy軸
 void Steering::move(float x, float y, float yaw){
 	if (locked) return;
+	if (shooter) return;
 	if (x == 0.0f && y == 0.0f && yaw == 0.0f){
 		//何も押されていないときは元の位置まで戻す
 		for (auto unit : *units){
@@ -68,6 +69,7 @@ void Steering::move(float x, float y, float yaw){
 
 /*原点どり開始*/
 void Steering::setZero(){
+	if (shooter) return;
 	locked = true;
 	settingZero = true;
 	for(size_t i = 0; i < 4; i++){
@@ -157,6 +159,16 @@ void Steering::updateSpeed(){
 void Steering::updatePosition(){
 	for (auto unit : *units){
 		unit->getSteerPID()->update();
+	}
+}
+
+void Steering::shooterMode(bool mode) {
+	shooter = mode;
+	if (mode) {
+		(*units)[0]->move(0, 0);
+		(*units)[1]->move(0, PULSEONE / 4);
+		(*units)[2]->move(0, PULSEONE / 4);
+		(*units)[3]->move(0, 0);
 	}
 }
 

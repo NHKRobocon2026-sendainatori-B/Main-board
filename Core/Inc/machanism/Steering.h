@@ -44,6 +44,8 @@ public:
 	void updateSpeed();
 	void updatePosition();
 
+	void shooterMode(bool mode);
+
 	std::array<int32_t, 4> sendSteeringAngle();
 
 	void lock();
@@ -56,6 +58,7 @@ private:
 	std::map<uint16_t, Target> pending_promises_;
 
 	bool settingZero = false;
+	bool shooter = false;
 	bool locked = false;
 };
 
