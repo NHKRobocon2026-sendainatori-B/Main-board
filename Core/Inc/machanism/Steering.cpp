@@ -165,10 +165,10 @@ void Steering::updatePosition(){
 void Steering::shooterMode(bool mode) {
 	shooter = mode;
 	if (mode) {
-		(*units)[0]->move(0, 0);
-		(*units)[1]->move(0, PULSEONE / 4);
-		(*units)[2]->move(0, PULSEONE / 4);
-		(*units)[3]->move(0, 0);
+		(*units)[0]->move(0, -PULSEONE / 8);
+		(*units)[1]->move(0, PULSEONE / 8);
+		(*units)[2]->move(0, PULSEONE / 8);
+		(*units)[3]->move(0, -PULSEONE / 8);
 	}
 }
 
