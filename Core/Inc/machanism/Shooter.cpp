@@ -7,14 +7,13 @@
 
 #include "Shooter.h"
 
-#define MOTOR_OUT -40 //モーターのノーマル出力、絶対変更
-#define LOAD_OUT -25 //装填時の速度
+#define MOTOR_OUT -120 //モーターのノーマル出力、絶対変更
 #define AGAIN_OUT -25 //再スタートを待つ速度
 #define ESC_OUT 100 //ESCの出力、絶対変更
 #define ESC_MAX 90
 #define SERVO_0 1000
 #define SERVO_180 2000
-#define SERVO_ANGLE_CLOSE 150 //サーボのアングル、絶対変更
+#define SERVO_ANGLE_CLOSE 158 //サーボのアングル、絶対変更
 #define SERVO_ANGLE_OPEN 100 //サーボのアングル開いたとき、絶対変更
 
 Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
@@ -31,16 +30,14 @@ void Shooter::init(){
 	motor->setMode(Mode::OPENLOOP);
 	esc->setMax(ESC_MAX);
 	servo->setting(SERVO_0, SERVO_180);
-	stop_ESC();
 }
 
-bool Shooter::moveShooter(bool move){
-	//装填のモード変更
-	//もし失敗したら下のtrueを変化
+bool Shooter::moveShooter(bool move) {
+	if (locked) return true; //問題は発生していない
 	moving = move;
-	if (!move) {
-		again_flag = true;
-		move_Motor(AGAIN_OUT);
+	if (moving) {
+		move_ESC();
+		move_Motor(MOTOR_OUT);
 	}
 	return true;
 }
@@ -73,42 +70,27 @@ void Shooter::close_servo(){
 	servo->move(SERVO_ANGLE_CLOSE);
 }
 
-void Shooter::Interrupt(){
-	if (again_flag){
-		if (counter % 6 == 0) {
-			move_Motor(LOAD_OUT);
-			again_flag = false;
-		}
-	} else {
-		if (counter % 6 == 0) {
-			move_Motor(LOAD_OUT);
-		}
-		if (counter % 6 == 1) {
-			if (start_flag) {
-				open_servo();
-				start_flag = false;
-			}
-			//装填を上にあげる
-		}
-		if (counter % 6 == 2) {
-			close_servo();
-		}
-		if (counter % 6 == 3) {
-			move_ESC();
-			move_Motor(MOTOR_OUT);
-		}
-		if (counter % 6 == 5) {
-			open_servo();
-			stop_ESC();
-		}
-	}
+//フォトインタラプタの割り込み
+void Shooter::Interrupt() {
+	if (!moving) return; //手動で回っている等射出には関係なし
 	counter++;
+	if (counter == 14) {
+		open_servo();
+		move_Motor(AGAIN_OUT);
+	} else if (counter == 19) {
+		stop_ESC();
+	} else if (counter == 30) {
+		stop_Motor();
+		counter = 0;
+		moving = false;
+	}
 }
 
 void Shooter::lock(){
 	motor->lock();
 	esc->lock();
 	servo->lock();
+	counter = 0;
 	locked = true;
 }
 
