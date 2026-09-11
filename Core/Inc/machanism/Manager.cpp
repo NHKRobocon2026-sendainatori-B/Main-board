@@ -174,7 +174,7 @@ void Manager::sendSteeringAngle(){
 	message[16] = static_cast<uint8_t>(list[3] & 0xFF);
 	message[17] = 0x90;
 
-	HAL_UART_Transmit(huart_, message, 10, 10);
+	HAL_UART_Transmit(huart_, message, 18, 10);
 }
 
 /* タイマー割り込みに入れる, オドメトリデータを取得送信 */
@@ -182,7 +182,7 @@ void Manager::updateOdometry(){
 	//odometryからデータを取得
 	auto data = std::array<int32_t, 10>();
 
-	uint8_t message[4];
+	uint8_t message[10];
 	message[0] = 0x5E;
 	message[1] = static_cast<uint8_t>((data[0] >> 24) & 0xFF);
 	message[2] = static_cast<uint8_t>((data[0] >> 16) & 0xFF);
