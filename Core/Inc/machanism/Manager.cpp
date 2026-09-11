@@ -21,6 +21,7 @@ Manager::~Manager() {
 /* UARTからの割り込みに入れる, データを受け取りいろいろな場所に分配 */
 void Manager::updatefromUART(uint8_t data){
 	if (state == State::HEADER){
+		logger_.clear();
 		state = State::READ;
 		switch(data){
 		case 0x11:
