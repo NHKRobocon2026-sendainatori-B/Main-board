@@ -165,7 +165,7 @@ int main(void)
   //モーター以外の場合止めて
   //雑巾射出用テスト
   shooter.move_Motor(-65);
-  //shooter.move_ESC();
+  shooter.move_ESC();
   //shooter.close_servo();
 
   /* USER CODE END 2 */
@@ -216,7 +216,7 @@ int main(void)
 	  }
 
 	  if (intrrupt_flag){
-		  if (intrrupt_count == 39){
+		  if (intrrupt_count == 40){
 			  shooter_servo.move(100);
 			  shooter.stop_Motor();
 		  }
