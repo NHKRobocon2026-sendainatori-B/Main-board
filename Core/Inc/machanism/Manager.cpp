@@ -90,6 +90,7 @@ void Manager::updatefromUART(uint8_t data){
 			if (data == 0x96){
 				//shooterを回す
 				//結果をUARTで送信
+				steering_->shooterMode(logger_[0] == 0x22);
 				_responceShooter(true); //この中にうごかすプログラム
 			}
 			break;
