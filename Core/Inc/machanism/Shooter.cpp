@@ -11,7 +11,7 @@
 #define LOAD_OUT -25 //装填時の速度
 #define AGAIN_OUT -25 //再スタートを待つ速度
 #define ESC_OUT 100 //ESCの出力、絶対変更
-#define ESC_MAX 72
+#define ESC_MAX 90
 #define SERVO_0 1000
 #define SERVO_180 2000
 #define SERVO_ANGLE_CLOSE 150 //サーボのアングル、絶対変更
