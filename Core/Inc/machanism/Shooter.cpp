@@ -33,7 +33,8 @@ void Shooter::init(){
 }
 
 bool Shooter::moveShooter() {
-	if (locked) return true; //問題は発生していない
+	if (locked) return false; //問題は発生していないがスマホ側が変わらないように
+	if (moving) return false; //上と同じく
 	moving = true;
 	if (moving) {
 		move_ESC();
