@@ -177,7 +177,7 @@ int main(void)
   	MD4ch_child ShooterMotor;
   	ESC ShooterEsc(&htim4, TIM_CHANNEL_1);
   	Servo ShooterServo(&htim4, TIM_CHANNEL_2);
-  	static Shooter shooter(&ShooterMotor, &ShooterEsc, &ShooterServo);
+  	static Shooter shooter(&ShooterMotor, &ShooterEsc, &ShooterServo, &steering);
   	shooter_address = &shooter;
   	shooter.init();
   //射出終了***********************************************************************************

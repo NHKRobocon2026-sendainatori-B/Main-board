@@ -13,9 +13,11 @@
 #include "ESC.h"
 #include "Servo.h"
 
+#include "Steering.h"
+
 class Shooter {
 public:
-	Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo);
+	Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo, Steering* _steer);
 	virtual ~Shooter();
 
 	void init();
@@ -41,6 +43,7 @@ private:
 	MD4ch_child* motor; //真ん中で振り回す場所
 	ESC* esc; //端で雑巾をぐるぐる回す場所
 	Servo* servo; //雑巾を掴むサーボ
+	Steering* _steer;
 
 	uint16_t counter = 0; //フォトインタラプタの割り込みカウンタ
 

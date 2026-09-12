@@ -16,8 +16,8 @@
 #define SERVO_ANGLE_CLOSE 158 //サーボのアングル、絶対変更
 #define SERVO_ANGLE_OPEN 100 //サーボのアングル開いたとき、絶対変更
 
-Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo)
-: motor(_motor), esc(_esc), servo(_servo)
+Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo, Steering* _steer)
+: motor(_motor), esc(_esc), servo(_servo), _steer(_steer)
 {
 	// TODO Auto-generated constructor stub
 }
@@ -85,6 +85,7 @@ void Shooter::Interrupt() {
 		stop_ESC();
 	} else if (counter == 30) {
 		stop_Motor();
+		_steer->shooterMode(false);
 		counter = 0;
 		moving = false;
 	}
