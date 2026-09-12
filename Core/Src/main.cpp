@@ -239,6 +239,7 @@ int main(void)
 			  } else if (angle > PULSE * 2 && shootertype == ShooterType::MOVEFIRST) {
 				  shooter.stop_Motor();
 				  shootertype = ShooterType::END;
+				  moved = false;
 			  }
 		  }
 		  flag = false;
