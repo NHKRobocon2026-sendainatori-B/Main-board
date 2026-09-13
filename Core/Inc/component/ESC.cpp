@@ -39,7 +39,7 @@ void ESC::move(uint8_t ratio){
 }
 
 void ESC::lock(){
-	__HAL_TIM_SET_COMPARE(tim_handle, tim_channel, 0);
+	__HAL_TIM_SET_COMPARE(tim_handle, tim_channel, 1000);
 	locked = true;
 }
 
