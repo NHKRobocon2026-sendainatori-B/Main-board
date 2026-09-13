@@ -89,8 +89,12 @@ void Manager::updatefromUART(uint8_t data){
 			break;
 		case Target::SHOOTER:
 			if (data == 0x96){
-				steering_->shooterMode((logger_[0] == 0xD1));
-				_responceShooter((logger_[0] == 0x22) ? shooter_->grab() : shooter_->moveShooter()); //この中にうごかすプログラム
+				if (logger_[0] == 0x22) {
+					steering_->shooterMode(true);
+					_responceShooter(true);
+				} else if (logger_[0] == 0xD1) {
+					_responceShooter(shooter_->moveShooter());
+				}
 			}
 			break;
 		case Target::LOADER:

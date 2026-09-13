@@ -7,7 +7,7 @@
 
 #include "Shooter.h"
 
-#define MOTOR_OUT -10 //モーターのノーマル出力、絶対変更
+#define MOTOR_OUT -110 //モーターのノーマル出力、絶対変更
 #define AGAIN_OUT -5 //再スタートを待つ速度
 #define ESC_OUT 100 //ESCの出力、絶対変更
 #define ESC_MAX 90
@@ -31,6 +31,7 @@ void Shooter::init(){
 	esc->setMax(ESC_MAX);
 	servo->setting(SERVO_0, SERVO_180);
 	esc->move(0);
+	close_servo();
 }
 
 bool Shooter::moveShooter() {
@@ -77,15 +78,16 @@ void Shooter::close_servo(){
 void Shooter::Interrupt() {
 	if (!moving) return; //手動で回っている等射出には関係なし
 	counter++;
-	if (counter == 14) {
+	if (counter == 19) {
 		open_servo();
 		//move_Motor(AGAIN_OUT);
-	} else if (counter == 19) {
-		stop_ESC();
-	} else if (counter == 30) {
 		stop_Motor();
+	} else if (counter == 24) {
+		stop_ESC();
+	} else if (counter == 35) {
 		_steer->shooterMode(false);
 		counter = 0;
+		close_servo();
 		moving = false;
 	}
 }
