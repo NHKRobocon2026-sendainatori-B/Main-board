@@ -21,6 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <deque>
+#include <algorithm>
+
 #include <m2006manager.h>
 #include <m2006.h>
 #include <MD4ch_child.h>
@@ -49,6 +52,12 @@
 #define SHOOTER_SERVO_0 1000
 #define SHOOTER_SERVO_180 2000
 #define PULSE 2048 //一周のパルス
+#define OPENPULSE (PULSE * 0.15) //射出地点のパルス
+#define ESCSTOPPULSE (PULSE * 0.5)
+#define SPEED735 (PULSE * 1.5) //１秒で何回転したいか
+#define ACCELOUT -110
+#define MAINTATIONOUT -25
+#define LOGGERSIZE 50
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -72,12 +81,18 @@ int32_t ms_counter = 0;
 int16_t intrrupt_count = 0;
 bool intrrupt_flag = false;
 int32_t angle = 0;
+int16_t lastremain;
+int32_t lastangle = 0;
+int32_t speed = 0;
 enum ShooterType {
 	MOVE735,
 	STOPESC,
 	MOVEFIRST,
 	END
 } shootertype = MOVE735;
+std::deque<int32_t> logger_ = {};
+bool shooterFlag = false;
+int rotation_count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -180,7 +195,7 @@ int main(void)
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-  shooter.move_Motor(-120);
+  shooter.move_Motor(ACCELOUT);
   //shooter.close_servo();
 
   /* USER CODE END 2 */
@@ -227,8 +242,66 @@ int main(void)
 		  if (ms_counter % 500 == 0){
 			  MD4ch_manager.send();
 		  }
+
+		  /*
+		  //エンコーダーチェック用
 		  angle = encoder.getAngle();
-		  if (moved) {
+		  */
+
+		  //本番
+		  if (shootertype != ShooterType::END) {
+			  angle = encoder.getAngle();
+			  int16_t remain = angle % PULSE;
+			  if (remain < lastremain) { //一周以上回ったら余りは小さくなるよね
+				  shooterFlag = false;
+				  rotation_count++;
+			  }
+			  if (rotation_count > 5) {
+				  shooter.stop_Motor();
+				  shooter.stop_ESC();
+				  shootertype = ShooterType::END;
+			  }
+			  switch (shootertype) {
+			  case ShooterType::MOVE735:
+				  //スピード計算
+				  speed = (angle - lastangle) * 1000;
+				  logger_.push_back(speed);
+				  if (logger_.size() > LOGGERSIZE) {
+					  logger_.pop_front();
+				  }
+				  if (speed < SPEED735) {
+					  shooter.move_Motor(ACCELOUT);
+				  } else {
+					  shooter.move_Motor(MAINTATIONOUT);
+				  }
+				  if (!shooterFlag && remain > OPENPULSE) {
+					  //スピードチェック
+					  auto valid_count = static_cast<std::size_t>(std::count_if(logger_.begin(), logger_.end(), [](int32_t speed) {
+						  return speed > (SPEED735 - 1000);
+					  }));
+					  if (logger_.size() >= static_cast<std::size_t>(LOGGERSIZE) && (valid_count * 10) >= (logger_.size() * 5)){
+						  shooter_servo.move(100);
+						  shooter.stop_Motor();
+						  shootertype = ShooterType::STOPESC;
+					  }
+					  shooterFlag = true;
+				  }
+				  lastangle = angle;
+				  break;
+			  case ShooterType::STOPESC:
+				  if (remain < ESCSTOPPULSE) break;
+				  shooter.stop_ESC();
+				  shooterFlag = true;
+				  shootertype = ShooterType::END;
+				  break;
+			  case ShooterType::MOVEFIRST:
+				  shootertype = ShooterType::END;
+				  break;
+			  default:
+				  break;
+			  }
+			  lastremain = remain;
+			  /*
 			  if (angle > PULSE * 3 / 2 && shootertype == ShooterType::MOVE735) {
 				  shooter_servo.move(100);
 				  shooter.move_Motor(-25);
@@ -240,7 +313,7 @@ int main(void)
 				  shooter.stop_Motor();
 				  shootertype = ShooterType::END;
 				  moved = false;
-			  }
+			  }*/
 		  }
 		  flag = false;
 	  }
