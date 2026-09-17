@@ -135,7 +135,7 @@ int main(void)
   shooter.init();
   //雑巾射出用テスト
 
-  shooter_servo.move(100);
+  shooter_servo.move(107);
   shooter_tip.setMax(90);
   shooter.move_ESC();
   shooter.stop_ESC();
@@ -166,7 +166,7 @@ int main(void)
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-  shooter.move_Motor(-120);
+  shooter.move_Motor(-110);
   //shooter.close_servo();
 
   /* USER CODE END 2 */
@@ -210,7 +210,7 @@ int main(void)
 
 	  //雑巾射出用テスト
 	  if (flag) {
-		  if (ms_counter % 500 == 0){
+		  if (ms_counter % 2 == 0){
 			  MD4ch_manager.send();
 		  }
 		  flag = false;
@@ -218,7 +218,7 @@ int main(void)
 
 	  if (intrrupt_flag){
 		  if (intrrupt_count == 14){
-			  shooter_servo.move(100);
+			  shooter_servo.move(107);
 			  shooter.stop_Motor();
 		  }
 		  if (intrrupt_count == 29){
