@@ -26,9 +26,8 @@
 #define ACCELOUT -110
 #define MAINTATIONOUT -25
 #define LOGGERSIZE 50
+#define MAXROTATION 3
 
-#define MOTOR_OUT -120 //モーターのノーマル出力、絶対変更
-#define AGAIN_OUT -25 //再スタートを待つ速度
 #define ESC_OUT 100 //ESCの出力、絶対変更
 #define ESC_MAX 90
 #define SERVO_0 1000
@@ -69,9 +68,12 @@ private:
 	int16_t lastRemain = 0;
 	enum ShooterType {
 		MOVE735,
-		STOPESC
+		STOPESC,
+		END
 	} shootertype = ShooterType::MOVE735;
 	std::deque<int32_t> logger_;
+	int16_t rotation_count = 0;
+	int32_t ms_counter = 0;
 
 	bool moving = false;
 	bool locked = false;
