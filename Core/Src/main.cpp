@@ -139,7 +139,7 @@ int main(void)
   shooter_tip.setMax(90);
   shooter.move_ESC();
   shooter.stop_ESC();
-  shooter_servo.move(158);
+  shooter_servo.move(163);
   HAL_Delay(1000);
   shooter.move_ESC();
   HAL_Delay(500);
@@ -166,7 +166,7 @@ int main(void)
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-  shooter.move_Motor(-110);
+  shooter.move_Motor(-123);
   //shooter.close_servo();
 
   /* USER CODE END 2 */
@@ -217,11 +217,11 @@ int main(void)
 	  }
 
 	  if (intrrupt_flag){
-		  if (intrrupt_count == 14){
+		  if (intrrupt_count == 31){
 			  shooter_servo.move(107);
 			  shooter.stop_Motor();
 		  }
-		  if (intrrupt_count == 29){
+		  if (intrrupt_count == 39){
 			  shooter.stop_ESC();
 		  }
 		  intrrupt_flag = false;
