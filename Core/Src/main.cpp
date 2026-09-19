@@ -215,11 +215,11 @@ int main(void)
 	  }
 
 	  if (intrrupt_flag){
-		  if (intrrupt_count == 19){
+		  if (intrrupt_count == 38){
 			  shooter_servo.move(90);
 			  shooter.stop_Motor();
 		  }
-		  if (intrrupt_count == 24){
+		  if (intrrupt_count == 48){
 			  shooter.stop_ESC();
 		  }
 		  intrrupt_flag = false;
