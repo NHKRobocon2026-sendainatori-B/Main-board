@@ -7,14 +7,13 @@
 
 #include "Shooter.h"
 
-#define MOTOR_OUT -110 //モーターのノーマル出力、絶対変更
-#define AGAIN_OUT -5 //再スタートを待つ速度
+#define MOTOR_OUT -121 //モーターのノーマル出力、絶対変更
 #define ESC_OUT 100 //ESCの出力、絶対変更
 #define ESC_MAX 90
 #define SERVO_0 1000
 #define SERVO_180 2000
-#define SERVO_ANGLE_CLOSE 158 //サーボのアングル、絶対変更
-#define SERVO_ANGLE_OPEN 100 //サーボのアングル開いたとき、絶対変更
+#define SERVO_ANGLE_CLOSE 165 //サーボのアングル、絶対変更
+#define SERVO_ANGLE_OPEN 90 //サーボのアングル開いたとき、絶対変更
 
 Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo, Steering* _steer)
 : motor(_motor), esc(_esc), servo(_servo), _steer(_steer)
@@ -78,16 +77,14 @@ void Shooter::close_servo(){
 void Shooter::Interrupt() {
 	if (!moving) return; //手動で回っている等射出には関係なし
 	counter++;
-	if (counter == 19) {
+	if (counter == 38) {
 		open_servo();
-		//move_Motor(AGAIN_OUT);
 		stop_Motor();
-	} else if (counter == 24) {
-		stop_ESC();
-	} else if (counter == 35) {
+	} else if (counter == 48) {
 		_steer->shooterMode(false);
-		counter = 0;
+		stop_ESC();
 		close_servo();
+		counter = 0;
 		moving = false;
 	}
 }
