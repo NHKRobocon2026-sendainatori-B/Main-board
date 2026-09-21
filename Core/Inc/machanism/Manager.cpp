@@ -77,13 +77,14 @@ void Manager::updatefromUART(uint8_t data){
 				state = State::HEADER;
 			}
 			break;
-		}
 		case Target::CHECK:
 			if (data == 0x2C) {
 				state = State::FOOTER;
 			} else {
 				state = State::HEADER;
 			}
+			break;
+		}
 	} else if (state == State::FOOTER){
 		state = State::HEADER;
 		switch(target){
@@ -147,6 +148,7 @@ void Manager::updatefromUART(uint8_t data){
 			if (data == 0x6E) {
 				_responceCheck();
 			}
+			break;
 		}
 		logger_.clear();
 	}
