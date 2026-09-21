@@ -136,7 +136,7 @@ int main(void)
   std::vector<MD4ch_child*> MD4ch_childs = { &shooter_root,&dummy1, &dummy2, &tip_motor };
 
   MD_4ch MD4ch_manager(&hcan1, &MD4ch_childs, 0x301);
-  Shooter shooter(&shooter_root, &shooter_tip, &shooter_servo);
+  Shooter shooter(&shooter_root, &tip_motor, &shooter_servo);
   shooter.init();
   //雑巾射出用テスト
 
@@ -172,7 +172,7 @@ int main(void)
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-  shooter.move_Motor(-80);
+  shooter_root.setOut(-80);
   //shooter.close_servo();
 
   /* USER CODE END 2 */
@@ -225,37 +225,37 @@ int main(void)
 	  if (intrrupt_flag){
 		  if (intrrupt_count == 5) {
 			  tip_motor.setOut(-90);
-			  shooter.move_Motor(-89);
+			  shooter_root.setOut(-89);
 		  }
 		  if (intrrupt_count == 10) {
 			  tip_motor.setOut(-100);
-			  shooter.move_Motor(-98);
+			  shooter_root.setOut(-98);
 		  }
 		  if (intrrupt_count == 15) {
 			  tip_motor.setOut(-110);
-			  shooter.move_Motor(-107);
+			  shooter_root.setOut(-107);
 		  }
 		  if (intrrupt_count == 20) {
 			  tip_motor.setOut(-120);
-			  shooter.move_Motor(-116);
+			  shooter_root.setOut(-116);
 		  }
 		  if (intrrupt_count == 25) {
 			  tip_motor.setOut(-130);
-			  shooter.move_Motor(-125);
+			  shooter_root.setOut(-125);
 		  }
 		  if (intrrupt_count == 30) {
 			  tip_motor.setOut(-140);
-			  shooter.move_Motor(-135);
+			  shooter_root.setOut(-135);
 		  }
 		  if (intrrupt_count == 35) {
 			  tip_motor.setOut(-150);
-			  shooter.move_Motor(-145);
+			  shooter_root.setOut(-145);
 		  }
 		  if (intrrupt_count == 38){
 			  shooter_servo.move(90);
 		  }
 		  if (intrrupt_count == 48){
-			  shooter.stop_Motor();
+			  shooter_root.setOut(0);
 			  tip_motor.setOut(0);
 		  }
 		  intrrupt_flag = false;
