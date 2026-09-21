@@ -42,6 +42,9 @@ void Manager::updatefromUART(uint8_t data){
 		case 0x26:
 			target = Target::RESET;
 			break;
+		case 0x8A:
+			target = Target::CHECK;
+			break;
 		default:
 			state = State::HEADER;
 			break;
@@ -75,6 +78,12 @@ void Manager::updatefromUART(uint8_t data){
 			}
 			break;
 		}
+		case Target::CHECK:
+			if (data == 0x2C) {
+				state = State::FOOTER;
+			} else {
+				state = State::HEADER;
+			}
 	} else if (state == State::FOOTER){
 		state = State::HEADER;
 		switch(target){
@@ -134,6 +143,11 @@ void Manager::updatefromUART(uint8_t data){
 					//フラグを立てる
 					resetflag = true;
 				}
+			}
+			break;
+		case Target::CHECK:
+			if (data == 0x6E) {
+				_responceCheck();
 			}
 		}
 		logger_.clear();
@@ -278,6 +292,17 @@ void Manager::_responceLock(bool success){
 	message[0] = 0xAA;
 	message[1] = 0xFF;
 	message[2] = (success) ? 0x01 : 0xFE;
+	message[3] = 0x55;
+
+	HAL_UART_Transmit(huart_, message, 4, 10);
+}
+
+void Manager::_responceCheck() {
+	uint8_t message[4];
+
+	message[0] = 0xAA;
+	message[1] = 0x8A;
+	message[2] = 0x01;
 	message[3] = 0x55;
 
 	HAL_UART_Transmit(huart_, message, 4, 10);

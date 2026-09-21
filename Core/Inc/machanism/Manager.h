@@ -51,7 +51,8 @@ private:
 		STEER,
 		LOCK,
 		START,
-		RESET
+		RESET,
+		CHECK
 	} target;
 
 	bool locked = false;
@@ -64,6 +65,7 @@ private:
 	void _responceShooter(bool success);
 	void _responceLoader(bool success);
 	void _responceLock(bool success);
+	void _responceCheck();
 };
 
 #endif /* INC_MACHANISM_MANAGER_H_ */
