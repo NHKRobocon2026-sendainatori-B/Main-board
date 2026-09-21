@@ -123,12 +123,17 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   MD4ch_child shooter_root; //根元のモーター
+  MD4ch_child dummy1;
+  dummy1.setMode(Mode::STOP);
+  MD4ch_child dummy2;
+  dummy2.setMode(Mode::STOP);
+  MD4ch_child tip_motor;
   ESC shooter_tip(&htim4, TIM_CHANNEL_1); //先端のESC
   Servo shooter_servo(&htim4, TIM_CHANNEL_2); //先端のサーボ
   //shooter_tip.setMax(50);
   shooter_servo.setting(SHOOTER_SERVO_0, SHOOTER_SERVO_180);
 
-  std::vector<MD4ch_child*> MD4ch_childs = { &shooter_root };
+  std::vector<MD4ch_child*> MD4ch_childs = { &shooter_root,&dummy1, &dummy2, &tip_motor };
 
   MD_4ch MD4ch_manager(&hcan1, &MD4ch_childs, 0x301);
   Shooter shooter(&shooter_root, &shooter_tip, &shooter_servo);
@@ -136,12 +141,14 @@ int main(void)
   //雑巾射出用テスト
 
   shooter_servo.move(165);
+  tip_motor.setMode(Mode::OPENLOOP);
+  /*
   shooter_tip.setMax(90);
   shooter.move_ESC();
-  shooter.stop_ESC();
+  shooter.stop_ESC();*/
   HAL_Delay(1000);
-  shooter.move_ESC();
-  HAL_Delay(500);
+  tip_motor.setOut(-80);
+  //shooter.move_ESC();
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
   filter.FilterIdHigh         = 0;
@@ -165,7 +172,7 @@ int main(void)
   //-40
   //モーター以外の場合止めて
   //雑巾射出用テスト
-  shooter.move_Motor(-120);
+  shooter.move_Motor(-80);
   //shooter.close_servo();
 
   /* USER CODE END 2 */
@@ -216,12 +223,40 @@ int main(void)
 	  }
 
 	  if (intrrupt_flag){
+		  if (intrrupt_count == 5) {
+			  tip_motor.setOut(-90);
+			  shooter.move_Motor(-89);
+		  }
+		  if (intrrupt_count == 10) {
+			  tip_motor.setOut(-100);
+			  shooter.move_Motor(-98);
+		  }
+		  if (intrrupt_count == 15) {
+			  tip_motor.setOut(-110);
+			  shooter.move_Motor(-107);
+		  }
+		  if (intrrupt_count == 20) {
+			  tip_motor.setOut(-120);
+			  shooter.move_Motor(-116);
+		  }
+		  if (intrrupt_count == 25) {
+			  tip_motor.setOut(-130);
+			  shooter.move_Motor(-125);
+		  }
+		  if (intrrupt_count == 30) {
+			  tip_motor.setOut(-140);
+			  shooter.move_Motor(-135);
+		  }
+		  if (intrrupt_count == 35) {
+			  tip_motor.setOut(-150);
+			  shooter.move_Motor(-145);
+		  }
 		  if (intrrupt_count == 38){
 			  shooter_servo.move(90);
-			  shooter.stop_Motor();
 		  }
 		  if (intrrupt_count == 48){
-			  shooter.stop_ESC();
+			  shooter.stop_Motor();
+			  tip_motor.setOut(0);
 		  }
 		  intrrupt_flag = false;
 	  }
