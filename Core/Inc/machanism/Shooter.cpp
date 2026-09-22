@@ -7,16 +7,28 @@
 
 #include "Shooter.h"
 
-#define MOTOR_OUT -121 //モーターのノーマル出力、絶対変更
-#define ESC_OUT 100 //ESCの出力、絶対変更
-#define ESC_MAX 90
-#define SERVO_0 1000
-#define SERVO_180 2000
-#define SERVO_ANGLE_CLOSE 165 //サーボのアングル、絶対変更
-#define SERVO_ANGLE_OPEN 90 //サーボのアングル開いたとき、絶対変更
+namespace {
+    constexpr int16_t OPENCOUNT = 38;
+    constexpr int16_t STOPCOUNT = 48;
+    constexpr int16_t INCREASE_INTERVAL = 5;
+    constexpr int16_t INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL; // 7
 
-Shooter::Shooter(MD4ch_child* _motor, ESC* _esc, Servo* _servo, Steering* _steer)
-: motor(_motor), esc(_esc), servo(_servo), _steer(_steer)
+    constexpr float MOTOR735_FIRST = -80.0f;
+    constexpr float MOTOR735_MAX = -145.0f;
+    constexpr float MOTOR735_INCREASE = (MOTOR735_MAX - MOTOR735_FIRST) / INCREASE_COUNT;
+
+    constexpr float MOTOR385_FIRST = -80.0f;
+    constexpr float MOTOR385_MAX = -150.0f;
+    constexpr float MOTOR385_INCREASE = (MOTOR385_MAX - MOTOR385_FIRST) / INCREASE_COUNT;
+
+    constexpr uint16_t SERVO_0 = 1000;
+    constexpr uint16_t SERVO_180 = 2000;
+    constexpr uint16_t SERVO_ANGLE_CLOSE = 165;
+    constexpr uint16_t SERVO_ANGLE_OPEN = 90;
+}
+
+Shooter::Shooter(MD4ch_child* _motor735, MD4ch_child* _motor385, Servo* _servo, Steering* _steer)
+: motor735(_motor735), motor385(_motor385), servo(_servo), _steer(_steer)
 {
 	// TODO Auto-generated constructor stub
 }
@@ -26,41 +38,37 @@ Shooter::~Shooter() {
 }
 
 void Shooter::init(){
-	motor->setMode(Mode::OPENLOOP);
-	esc->setMax(ESC_MAX);
+	motor735->setMode(Mode::OPENLOOP);
+	motor385->setMode(Mode::OPENLOOP);
 	servo->setting(SERVO_0, SERVO_180);
-	esc->move(0);
-	close_servo();
 }
 
-bool Shooter::moveShooter() {
-	if (locked || moving) return false;
-	moving = true;
-	move_ESC();
-	move_Motor(MOTOR_OUT);
+bool Shooter::moveShooter(bool move) {
+	if (locked) return true; //問題は発生していない
+	moving = move;
+	if (moving) {
+		move_Motor735(static_cast<int16_t>(MOTOR735_FIRST));
+		move_Motor385(static_cast<int16_t>(MOTOR385_FIRST));
+	}
 	return true;
 }
-bool Shooter::grab() {
-	if (locked || moving) return false;
-	close_servo();
-	return true;
-}
-void Shooter::move_Motor(int16_t out){
+
+void Shooter::move_Motor735(int16_t out){
 	if (locked) return;
-	motor->setOut(out);
+	motor735->setOut(out);
 }
 
-void Shooter::stop_Motor(){
-	motor->setOut(0);
+void Shooter::stop_Motor735(){
+	motor735->setOut(0);
 }
 
-void Shooter::move_ESC(){
+void Shooter::move_Motor385(int16_t out) {
 	if (locked) return;
-	esc->move(ESC_MAX);
+	motor385->setOut(out);
 }
 
-void Shooter::stop_ESC(){
-	esc->move(0);
+void Shooter::stop_Motor385(){
+	motor385->setOut(0);
 }
 
 void Shooter::open_servo(){
@@ -77,29 +85,35 @@ void Shooter::close_servo(){
 void Shooter::Interrupt() {
 	if (!moving) return; //手動で回っている等射出には関係なし
 	counter++;
-	if (counter == 38) {
+	if (counter % INCREASE_INTERVAL == 0) {
+		int16_t quotient = counter / INCREASE_INTERVAL;
+		if (quotient <= INCREASE_COUNT) {
+			move_Motor735(static_cast<int16_t>(MOTOR735_FIRST + quotient * MOTOR735_INCREASE));
+			move_Motor385(static_cast<int16_t>(MOTOR385_FIRST + quotient * MOTOR385_INCREASE));
+		}
+	}
+	if (counter == OPENCOUNT) {
 		open_servo();
-		stop_Motor();
-	} else if (counter == 48) {
-		_steer->shooterMode(false);
-		stop_ESC();
-		close_servo();
-		counter = 0;
+	}
+	if (counter == STOPCOUNT) {
+		stop_Motor735();
+		stop_Motor385();
 		moving = false;
+		counter = 0;
 	}
 }
 
 void Shooter::lock(){
-	motor->lock();
-	esc->lock();
+	motor735->lock();
+	motor385->lock();
 	servo->lock();
 	counter = 0;
 	locked = true;
 }
 
 void Shooter::unlock(){
-	motor->unlock();
-	esc->unlock();
+	motor735->unlock();
+	motor385->unlock();
 	servo->unlock();
 	locked = false;
 }
