@@ -11,14 +11,14 @@ namespace {
     constexpr int16_t OPENCOUNT = 38;
     constexpr int16_t STOPCOUNT = 48;
     constexpr int16_t INCREASE_INTERVAL = 5;
-    constexpr int16_t INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL; // 7
+    constexpr int16_t INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL;
 
     constexpr float MOTOR735_FIRST = -80.0f;
-    constexpr float MOTOR735_MAX = -145.0f;
+    constexpr float MOTOR735_MAX = -150.0f;
     constexpr float MOTOR735_INCREASE = (MOTOR735_MAX - MOTOR735_FIRST) / INCREASE_COUNT;
 
     constexpr float MOTOR385_FIRST = -80.0f;
-    constexpr float MOTOR385_MAX = -150.0f;
+    constexpr float MOTOR385_MAX = -180.0f;
     constexpr float MOTOR385_INCREASE = (MOTOR385_MAX - MOTOR385_FIRST) / INCREASE_COUNT;
 
     constexpr uint16_t SERVO_0 = 1000;
