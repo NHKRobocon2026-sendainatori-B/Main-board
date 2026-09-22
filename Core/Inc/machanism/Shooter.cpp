@@ -41,6 +41,7 @@ void Shooter::init(){
 	motor735->setMode(Mode::OPENLOOP);
 	motor385->setMode(Mode::OPENLOOP);
 	servo->setting(SERVO_0, SERVO_180);
+	close_servo();
 }
 
 bool Shooter::moveShooter() {
@@ -99,6 +100,7 @@ void Shooter::Interrupt() {
 		stop_Motor385();
 		moving = false;
 		counter = 0;
+		close_servo();
 		_steer->shooterMode(false);
 	}
 }
