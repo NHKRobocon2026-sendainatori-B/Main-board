@@ -174,10 +174,10 @@ int main(void)
   //ステアリング終了*******************************************************************************
 
   //射出**************************************************************************************
-  	MD4ch_child ShooterMotor;
-  	ESC ShooterEsc(&htim4, TIM_CHANNEL_1);
-  	Servo ShooterServo(&htim4, TIM_CHANNEL_2);
-  	static Shooter shooter(&ShooterMotor, &ShooterEsc, &ShooterServo, &steering);
+  	static MD4ch_child ShooterMotor735;
+  	static MD4ch_child ShooterMotor385;
+  	static Servo ShooterServo(&htim4, TIM_CHANNEL_2);
+  	static Shooter shooter(&ShooterMotor735, &ShooterMotor385, &ShooterServo, &steering);
   	shooter_address = &shooter;
   	shooter.init();
   //射出終了***********************************************************************************
@@ -196,7 +196,7 @@ int main(void)
   //マネージャー終了*******************************************************************************
 
   //送信関連***********************************************************************************
-  	std::vector<MD4ch_child*> motors2 = { &ShooterMotor };
+  	std::vector<MD4ch_child*> motors2 = { &ShooterMotor735, &ShooterMotor385 };
   	static m2006_manager m2006manager(&m2006s, &hcan1);
   	m2006_address = &m2006manager;
   	static MD_4ch MD4ch1(&hcan1, &steer_drives, 0x302);
