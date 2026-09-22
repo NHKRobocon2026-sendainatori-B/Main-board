@@ -7,21 +7,25 @@
 
 #include "Shooter.h"
 
-#define OPENCOUNT 38
-#define STOPCOUNT 48
-#define INCREASE_INTERVAL 5
-#define INCREASE_COUNT ((OPENCOUNT / INCREASE_INTERVAL))
+namespace {
+    constexpr int16_t OPENCOUNT = 38;
+    constexpr int16_t STOPCOUNT = 48;
+    constexpr int16_t INCREASE_INTERVAL = 5;
+    constexpr int16_t INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL; // 7
 
-#define MOTOR735_FIRST -80
-#define MOTOR735_MAX -145
-#define MOTOR735_INCREASE (static_cast<float>((MOTOR735_MAX - MOTOR735_FIRST) / INCREASE_COUNT))
-#define MOTOR385_FIRST -80
-#define MOTOR385_MAX -150
-#define MOTOR385_INCREASE (static_cast<float>((MOTOR385_MAX - MOTOR385_FIRST) / INCREASE_COUNT))
-#define SERVO_0 1000
-#define SERVO_180 2000
-#define SERVO_ANGLE_CLOSE 158 //サーボのアングル、絶対変更
-#define SERVO_ANGLE_OPEN 100 //サーボのアングル開いたとき、絶対変更
+    constexpr float MOTOR735_FIRST = -80.0f;
+    constexpr float MOTOR735_MAX = -145.0f;
+    constexpr float MOTOR735_INCREASE = (MOTOR735_MAX - MOTOR735_FIRST) / INCREASE_COUNT;
+
+    constexpr float MOTOR385_FIRST = -80.0f;
+    constexpr float MOTOR385_MAX = -150.0f;
+    constexpr float MOTOR385_INCREASE = (MOTOR385_MAX - MOTOR385_FIRST) / INCREASE_COUNT;
+
+    constexpr uint16_t SERVO_0 = 1000;
+    constexpr uint16_t SERVO_180 = 2000;
+    constexpr uint16_t SERVO_ANGLE_CLOSE = 165;
+    constexpr uint16_t SERVO_ANGLE_OPEN = 90;
+}
 
 Shooter::Shooter(MD4ch_child* _motor735, MD4ch_child* _motor385, Servo* _servo)
 : motor735(_motor735), motor385(_motor385), servo(_servo)
@@ -43,8 +47,8 @@ bool Shooter::moveShooter(bool move) {
 	if (locked) return true; //問題は発生していない
 	moving = move;
 	if (moving) {
-		move_Motor735(MOTOR735_FIRST);
-		move_Motor385(MOTOR385_FIRST);
+		move_Motor735(static_cast<int16_t>(MOTOR735_FIRST));
+		move_Motor385(static_cast<int16_t>(MOTOR385_FIRST));
 	}
 	return true;
 }
@@ -81,10 +85,12 @@ void Shooter::close_servo(){
 void Shooter::Interrupt() {
 	if (!moving) return; //手動で回っている等射出には関係なし
 	counter++;
-	if (counter % INCREASE_COUNT == 0) {
-		int16_t quotient = counter / INCREASE_COUNT;
-		move_Motor735(static_cast<int>(MOTOR735_FIRST + quotient * MOTOR735_INCREASE));
-		move_Motor385(static_cast<int>(MOTOR385_FIRST + quotient * MOTOR385_INCREASE));
+	if (counter % INCREASE_INTERVAL == 0) {
+		int16_t quotient = counter / INCREASE_INTERVAL;
+		if (quotient <= INCREASE_COUNT) {
+			move_Motor735(static_cast<int16_t>(MOTOR735_FIRST + quotient * MOTOR735_INCREASE));
+			move_Motor385(static_cast<int16_t>(MOTOR385_FIRST + quotient * MOTOR385_INCREASE));
+		}
 	}
 	if (counter == OPENCOUNT) {
 		open_servo();
