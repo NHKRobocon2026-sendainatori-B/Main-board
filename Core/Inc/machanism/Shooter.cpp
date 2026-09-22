@@ -43,13 +43,12 @@ void Shooter::init(){
 	servo->setting(SERVO_0, SERVO_180);
 }
 
-bool Shooter::moveShooter(bool move) {
+bool Shooter::moveShooter() {
 	if (locked) return true; //問題は発生していない
-	moving = move;
-	if (moving) {
-		move_Motor735(static_cast<int16_t>(MOTOR735_FIRST));
-		move_Motor385(static_cast<int16_t>(MOTOR385_FIRST));
-	}
+	moving = true;
+	counter = 0;
+	move_Motor735(static_cast<int16_t>(MOTOR735_FIRST));
+	move_Motor385(static_cast<int16_t>(MOTOR385_FIRST));
 	return true;
 }
 
@@ -100,6 +99,7 @@ void Shooter::Interrupt() {
 		stop_Motor385();
 		moving = false;
 		counter = 0;
+		_steer->shooterMode(false);
 	}
 }
 
