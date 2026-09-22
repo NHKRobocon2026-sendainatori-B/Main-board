@@ -189,6 +189,7 @@ void Steering::lock(){
 
 void Steering::unlock(){
 	locked = false;
+	shooterMode(false);
 	for (auto unit : *units){
 		unit->unlock();
 	}
