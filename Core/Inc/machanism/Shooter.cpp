@@ -9,7 +9,7 @@
 
 namespace {
     constexpr int16_t OPENCOUNT = 38;
-    constexpr int16_t STOPCOUNT = 48;
+    constexpr int16_t STOPCOUNT = OPENCOUNT + 10;
     constexpr int16_t INCREASE_INTERVAL = 5;
     constexpr int16_t INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL;
 
@@ -94,6 +94,7 @@ void Shooter::Interrupt() {
 	}
 	if (counter == OPENCOUNT) {
 		open_servo();
+		move_Motor735(100);
 	}
 	if (counter == STOPCOUNT) {
 		stop_Motor735();
