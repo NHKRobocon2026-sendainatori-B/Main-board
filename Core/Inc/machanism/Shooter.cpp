@@ -45,7 +45,7 @@ void Shooter::init(){
 }
 
 bool Shooter::moveShooter() {
-	if (locked) return true; //問題は発生していない
+	if (locked) return false; //問題は発生していない
 	moving = true;
 	counter = 0;
 	move_Motor735(static_cast<int16_t>(MOTOR735_FIRST));
