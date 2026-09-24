@@ -32,6 +32,7 @@
 #include <RotaryEncoder.h>
 #include <ESC.h>
 #include <Servo.h>
+#include <RotaryEncoder.h>
 
 #include "Shooter.h"
 
@@ -57,6 +58,7 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
@@ -65,9 +67,11 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 volatile bool flag = false;
-int32_t ms_counter = 0;
-int16_t intrrupt_count = 0;
-bool intrrupt_flag = false;
+volatile int32_t ms_counter = 0;
+volatile int16_t intrrupt_count = 0;
+volatile bool intrrupt_flag = false;
+volatile int32_t last_angle = 0;
+volatile int16_t speed = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,6 +82,7 @@ static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -121,6 +126,7 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   MD4ch_child shooter_root; //根元のモーター
   MD4ch_child dummy1;
@@ -130,6 +136,8 @@ int main(void)
   MD4ch_child tip_motor;
   ESC shooter_tip(&htim4, TIM_CHANNEL_1); //先端のESC
   Servo shooter_servo(&htim4, TIM_CHANNEL_2); //先端のサーボ
+  RotaryEncoder enc(&htim1);
+  enc.start();
   //shooter_tip.setMax(50);
   shooter_servo.setting(SHOOTER_SERVO_0, SHOOTER_SERVO_180);
 
@@ -218,6 +226,11 @@ int main(void)
 	  if (flag) {
 		  if (ms_counter % 2 == 0){
 			  MD4ch_manager.send();
+		  }
+		  if (ms_counter % 10 == 0) {
+			  int32_t now_angle = enc.getAngle();
+			  speed = (now_angle - last_angle) * 100;
+			  last_angle = now_angle;
 		  }
 		  flag = false;
 	  }
@@ -345,6 +358,56 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 0;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 0;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 0;
+  if (HAL_TIM_Encoder_Init(&htim1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
 
 }
 
