@@ -238,13 +238,11 @@ int main(void)
 	  if (flag){
 		  if (ms_counter % 5 == 0) {
 		 	  steering.updateSpeed();
+		 	  MD4ch1.send();
+		 	  MD4ch2.send();
 		  }
 		  if (ms_counter % 10 == 0) {
 			  steering.updatePosition();
-		  }
-		  if (ms_counter % 20 == 0) {
-			  MD4ch1.send();
-			  MD4ch2.send();
 		  }
 		  if (ms_counter % 99 == 0) {
 			  ProcessStatus status = steering.setZeroupdate();
