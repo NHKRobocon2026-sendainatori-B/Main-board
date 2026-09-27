@@ -70,6 +70,7 @@ m2006_manager* m2006_address;
 Manager* maanger_address;
 Steering* steering_address;
 Shooter* shooter_address;
+volatile int32_t intrrupt_count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -181,7 +182,11 @@ int main(void)
   	dummy1.setMode(Mode::STOP);
   	dummy2.setMode(Mode::STOP);
   	static Servo ShooterServo(&htim4, TIM_CHANNEL_2);
-  	static Shooter shooter(&ShooterMotor735, &ShooterMotor385, &ShooterServo, &steering);
+  	GPIOPIN led = {
+  			.port = GPIOD,
+			.pin = GPIO_PIN_2
+  	};
+  	static Shooter shooter(&ShooterMotor735, &ShooterMotor385, &ShooterServo, &steering, led);
   	shooter_address = &shooter;
   	shooter.init();
   //射出終了***********************************************************************************
@@ -539,6 +544,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_2, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PD2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
   /*Configure GPIO pins : PD3 PD4 PD5 PD6
                            PD7 */
   GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
@@ -548,13 +563,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI3_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI4_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
@@ -596,6 +611,7 @@ extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	} else if (GPIO_Pin == GPIO_PIN_3) {
 		if (shooter_address == nullptr) return;
 		shooter_address->Interrupt();
+		intrrupt_count++;
 	}
 }
 

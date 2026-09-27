@@ -14,9 +14,14 @@
 
 #include "Steering.h"
 
+struct GPIOPIN {
+	GPIO_TypeDef* port;
+	uint16_t pin;
+};
+
 class Shooter {
 public:
-	Shooter(MD4ch_child* _motor735, MD4ch_child* _motor385, Servo* _servo, Steering* _steer);
+	Shooter(MD4ch_child* _motor735, MD4ch_child* _motor385, Servo* _servo, Steering* _steer, GPIOPIN led);
 	virtual ~Shooter();
 
 	void init();
@@ -40,6 +45,7 @@ private:
 	MD4ch_child* motor385; //先端の385
 	Servo* servo; //雑巾を掴むサーボ
 	Steering* _steer;
+	GPIOPIN led;
 
 	uint16_t counter = 0; //フォトインタラプタの割り込みカウンタ
 

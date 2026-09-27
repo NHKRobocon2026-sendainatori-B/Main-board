@@ -14,23 +14,24 @@ namespace {
     constexpr int16_t INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL;
 
     constexpr float MOTOR735_FIRST = -80.0f;
-    constexpr float MOTOR735_MAX = -150.0f;
+    constexpr float MOTOR735_MAX = -145.0f;
     constexpr float MOTOR735_INCREASE = (MOTOR735_MAX - MOTOR735_FIRST) / INCREASE_COUNT;
 
     constexpr float MOTOR385_FIRST = -80.0f;
-    constexpr float MOTOR385_MAX = -180.0f;
+    constexpr float MOTOR385_MAX = -166.0f;
     constexpr float MOTOR385_INCREASE = (MOTOR385_MAX - MOTOR385_FIRST) / INCREASE_COUNT;
 
     constexpr uint16_t SERVO_0 = 1000;
     constexpr uint16_t SERVO_180 = 2000;
-    constexpr uint16_t SERVO_ANGLE_CLOSE = 165;
+    constexpr uint16_t SERVO_ANGLE_CLOSE = 170;
     constexpr uint16_t SERVO_ANGLE_OPEN = 90;
 }
 
-Shooter::Shooter(MD4ch_child* _motor735, MD4ch_child* _motor385, Servo* _servo, Steering* _steer)
-: motor735(_motor735), motor385(_motor385), servo(_servo), _steer(_steer)
+Shooter::Shooter(MD4ch_child* _motor735, MD4ch_child* _motor385, Servo* _servo, Steering* _steer, GPIOPIN led)
+: motor735(_motor735), motor385(_motor385), servo(_servo), _steer(_steer), led(led)
 {
 	// TODO Auto-generated constructor stub
+	HAL_GPIO_WritePin(led.port, led.pin, GPIO_PIN_RESET);
 }
 
 Shooter::~Shooter() {
@@ -94,6 +95,7 @@ void Shooter::Interrupt() {
 	}
 	if (counter == OPENCOUNT) {
 		open_servo();
+		HAL_GPIO_WritePin(led.port, led.pin, GPIO_PIN_SET);
 	}
 	if (counter == STOPCOUNT) {
 		stop_Motor735();
@@ -102,6 +104,7 @@ void Shooter::Interrupt() {
 		counter = 0;
 		close_servo();
 		_steer->shooterMode(false);
+		HAL_GPIO_WritePin(led.port, led.pin, GPIO_PIN_RESET);
 	}
 }
 
