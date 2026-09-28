@@ -8,8 +8,8 @@
 #include "Shooter.h"
 
 namespace {
-    constexpr int16_t OPENCOUNT = 38;
-    constexpr int16_t STOPCOUNT = 48;
+    constexpr int16_t OPENCOUNT = 41;
+    constexpr int16_t STOPCOUNT = 51;
     constexpr int16_t INCREASE_INTERVAL = 5;
     constexpr int16_t INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL;
 
@@ -23,8 +23,8 @@ namespace {
 
     constexpr uint16_t SERVO_0 = 1000;
     constexpr uint16_t SERVO_180 = 2000;
-    constexpr uint16_t SERVO_ANGLE_CLOSE = 170;
-    constexpr uint16_t SERVO_ANGLE_OPEN = 90;
+    constexpr uint16_t SERVO_ANGLE_CLOSE = 43;
+    constexpr uint16_t SERVO_ANGLE_OPEN = 2;
 }
 
 Shooter::Shooter(MD4ch_child* _motor735, MD4ch_child* _motor385, Servo* _servo, Steering* _steer, GPIOPIN led)
