@@ -147,8 +147,8 @@ int main(void)
   Shooter shooter(&shooter_root, &tip_motor, &shooter_servo);
   shooter.init();
   //雑巾射出用テスト
-
-  shooter_servo.move(165);
+  shooter_servo.move(2);
+  shooter_servo.move(43);
   tip_motor.setMode(Mode::OPENLOOP);
   /*
   shooter_tip.setMax(90);
