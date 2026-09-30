@@ -45,6 +45,12 @@ void Manager::updatefromUART(uint8_t data){
 		case 0x8A:
 			target = Target::CHECK;
 			break;
+		case 0x09:
+			target = Target::SHOOTEROUT;
+			break;
+		case 0xEA:
+			target = Target::SHOOTERMODE;
+			break;
 		default:
 			state = State::HEADER;
 			break;
@@ -83,6 +89,14 @@ void Manager::updatefromUART(uint8_t data){
 			} else {
 				state = State::HEADER;
 			}
+			break;
+		case Target::SHOOTEROUT:
+			logger_.push_back(data);
+			if (logger_.size() == 5) state = State::FOOTER;
+			break;
+		case Target::SHOOTERMODE:
+			logger_.push_back(data);
+			state = State::FOOTER;
 			break;
 		}
 	} else if (state == State::FOOTER){
@@ -150,6 +164,20 @@ void Manager::updatefromUART(uint8_t data){
 			if (data == 0x6E) {
 				_responceCheck();
 			}
+			break;
+		case Target::SHOOTEROUT:
+			if (data == 0xC6) {
+				std::array<uint8_t, 5> packet;
+				packet[0] = logger_.data()[0];
+				packet[1] = logger_.data()[1];
+				packet[2] = logger_.data()[2];
+				packet[3] = logger_.data()[3];
+				packet[4] = logger_.data()[4];
+				shooter_->variableUpdate(packet);
+			}
+			break;
+		case Target::SHOOTERMODE:
+			_responceShooterMode(shooter_->setMode(logger_[0]));
 			break;
 		}
 		logger_.clear();
@@ -305,6 +333,17 @@ void Manager::_responceCheck() {
 	message[0] = 0xAA;
 	message[1] = 0x8A;
 	message[2] = 0x01;
+	message[3] = 0x55;
+
+	HAL_UART_Transmit(huart_, message, 4, 10);
+}
+
+void Manager::_responceShooterMode(bool success) {
+	uint8_t message[4];
+
+	message[0] = 0xAA;
+	message[1] = 0xEA;
+	message[2] = (success) ? 0x01 : 0x55;
 	message[3] = 0x55;
 
 	HAL_UART_Transmit(huart_, message, 4, 10);
