@@ -32,6 +32,9 @@
 #include <RotaryEncoder.h>
 #include <ESC.h>
 #include <Servo.h>
+#include <RotaryEncoder.h>
+
+#include "Shooter.h"
 
 #include <Manager.h>
 #include <Steering.h>
@@ -45,7 +48,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//Shooter設定用
+#define SHOOTER_SERVO_0 1000
+#define SHOOTER_SERVO_180 2000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -56,6 +61,7 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
@@ -80,6 +86,7 @@ static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -123,7 +130,20 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  MD4ch_child shooter_root; //根元のモーター
+  MD4ch_child dummy1;
+  dummy1.setMode(Mode::STOP);
+  MD4ch_child dummy2;
+  dummy2.setMode(Mode::STOP);
+  MD4ch_child tip_motor;
+  ESC shooter_tip(&htim4, TIM_CHANNEL_1); //先端のESC
+  Servo shooter_servo(&htim4, TIM_CHANNEL_2); //先端のサーボ
+  RotaryEncoder enc(&htim1);
+  enc.start();
+  //shooter_tip.setMax(50);
+  shooter_servo.setting(SHOOTER_SERVO_0, SHOOTER_SERVO_180);
 
   //ステアリング*******************************************************************************
     static std::vector<MD4ch_child*> steer_drives;
@@ -211,12 +231,14 @@ int main(void)
 
   HAL_CAN_Start(&hcan1); //CANスタート
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //CAN割り込み有効化
+  //ESC及びサーボをデバッグで回す際、割り込みは無効に
   HAL_TIM_Base_Start_IT(&htim3); //タイマー割り込み有効化
   HAL_UART_Receive_IT(&huart2, &uartRxbyte, 1); //UARTの割り込み
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -244,6 +266,61 @@ int main(void)
 		  m2006manager.sendtoCAN();
 		  flag = false;
 	  }
+	  */
+
+
+	  //雑巾射出用テスト
+	  if (flag) {
+		  if (ms_counter % 2 == 0){
+			  MD4ch_manager.send();
+		  }
+		  if (ms_counter % 10 == 0) {
+			  int32_t now_angle = enc.getAngle();
+			  speed = (now_angle - last_angle) * 100;
+			  last_angle = now_angle;
+		  }
+		  flag = false;
+	  }
+
+	  if (intrrupt_flag){
+		  if (intrrupt_count == 5) {
+			  tip_motor.setOut(-90);
+			  shooter_root.setOut(-89);
+		  }
+		  if (intrrupt_count == 10) {
+			  tip_motor.setOut(-100);
+			  shooter_root.setOut(-98);
+		  }
+		  if (intrrupt_count == 15) {
+			  tip_motor.setOut(-110);
+			  shooter_root.setOut(-107);
+		  }
+		  if (intrrupt_count == 20) {
+			  tip_motor.setOut(-120);
+			  shooter_root.setOut(-116);
+		  }
+		  if (intrrupt_count == 25) {
+			  tip_motor.setOut(-130);
+			  shooter_root.setOut(-125);
+		  }
+		  if (intrrupt_count == 30) {
+			  tip_motor.setOut(-140);
+			  shooter_root.setOut(-135);
+		  }
+		  if (intrrupt_count == 35) {
+			  tip_motor.setOut(-150);
+			  shooter_root.setOut(-145);
+		  }
+		  if (intrrupt_count == 38){
+			  shooter_servo.move(90);
+		  }
+		  if (intrrupt_count == 48){
+			  shooter_root.setOut(0);
+			  tip_motor.setOut(0);
+		  }
+		  intrrupt_flag = false;
+	  }
+
   }
   /* USER CODE END 3 */
 }
@@ -328,6 +405,56 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 0;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 0;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 0;
+  if (HAL_TIM_Encoder_Init(&htim1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
 
 }
 
@@ -464,6 +591,10 @@ static void MX_TIM4_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
