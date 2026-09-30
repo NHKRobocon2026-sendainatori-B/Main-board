@@ -70,7 +70,7 @@ void Shooter::Interrupt() {
 		int16_t quotient = counter / INCREASE_INTERVAL;
 		if (quotient <= INCREASE_COUNT) {
 			move_Motor735(static_cast<int16_t>(MOTOR735_FIRST + quotient * MOTOR735_INCREASE));
-			move_Motor385(static_cast<int16_t>(MOTOR385_FIRST + quotient * MOTOR385_INCREASE));
+			if (mode != ShooterMode::BUCKET) move_Motor385(static_cast<int16_t>(MOTOR385_FIRST + quotient * MOTOR385_INCREASE));
 		}
 	}
 	if (counter == OPENCOUNT) {
