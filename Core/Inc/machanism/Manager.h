@@ -52,7 +52,9 @@ private:
 		LOCK,
 		START,
 		RESET,
-		CHECK
+		CHECK,
+		SHOOTEROUT,
+		SHOOTERMODE
 	} target;
 
 	bool locked = false;
@@ -66,6 +68,7 @@ private:
 	void _responceLoader(bool success);
 	void _responceLock(bool success);
 	void _responceCheck();
+	void _responceShooterMode(bool success);
 };
 
 #endif /* INC_MACHANISM_MANAGER_H_ */
