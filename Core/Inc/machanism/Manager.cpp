@@ -181,7 +181,9 @@ void Manager::updatefromUART(uint8_t data){
 			}
 			break;
 		case Target::SHOOTERMODE:
-			_responceShooterMode(shooter_->setMode(logger_[0]));
+			if (data = 0x7D) {
+				_responceShooterMode(shooter_->setMode(logger_[0]));
+			}
 			break;
 		}
 		logger_.clear();
