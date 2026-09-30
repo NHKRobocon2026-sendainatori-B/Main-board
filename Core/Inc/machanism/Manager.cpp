@@ -166,11 +166,11 @@ void Manager::updatefromUART(uint8_t data){
 		case Target::SHOOTEROUT:
 			if (data == 0xC6) {
 				std::array<uint8_t, 5> packet;
-				packet[0] = logger_.data()[0];
-				packet[1] = logger_.data()[1];
-				packet[2] = logger_.data()[2];
-				packet[3] = logger_.data()[3];
-				packet[4] = logger_.data()[4];
+				packet[0] = logger_[0];
+				packet[1] = logger_[1];
+				packet[2] = logger_[2];
+				packet[3] = logger_[3];
+				packet[4] = logger_[4];
 				shooter_->variableUpdate(packet);
 			}
 			break;
