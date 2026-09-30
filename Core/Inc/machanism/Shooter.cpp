@@ -7,26 +7,6 @@
 
 #include "Shooter.h"
 
-namespace {
-    constexpr int16_t OPENCOUNT = 41;
-    constexpr int16_t STOPCOUNT = 51;
-    constexpr int16_t INCREASE_INTERVAL = 5;
-    constexpr int16_t INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL;
-
-    constexpr float MOTOR735_FIRST = -80.0f;
-    constexpr float MOTOR735_MAX = -145.0f;
-    constexpr float MOTOR735_INCREASE = (MOTOR735_MAX - MOTOR735_FIRST) / INCREASE_COUNT;
-
-    constexpr float MOTOR385_FIRST = -80.0f;
-    constexpr float MOTOR385_MAX = -166.0f;
-    constexpr float MOTOR385_INCREASE = (MOTOR385_MAX - MOTOR385_FIRST) / INCREASE_COUNT;
-
-    constexpr uint16_t SERVO_0 = 1000;
-    constexpr uint16_t SERVO_180 = 2000;
-    constexpr uint16_t SERVO_ANGLE_CLOSE = 43;
-    constexpr uint16_t SERVO_ANGLE_OPEN = 2;
-}
-
 Shooter::Shooter(MD4ch_child* _motor735, MD4ch_child* _motor385, Servo* _servo, Steering* _steer, GPIOPIN led)
 : motor735(_motor735), motor385(_motor385), servo(_servo), _steer(_steer), led(led)
 {
@@ -50,7 +30,7 @@ bool Shooter::moveShooter() {
 	moving = true;
 	counter = 0;
 	move_Motor735(static_cast<int16_t>(MOTOR735_FIRST));
-	move_Motor385(static_cast<int16_t>(MOTOR385_FIRST));
+	if (mode != ShooterMode::BUCKET) move_Motor385(static_cast<int16_t>(MOTOR385_FIRST));
 	return true;
 }
 
@@ -106,6 +86,46 @@ void Shooter::Interrupt() {
 		_steer->shooterMode(false);
 		HAL_GPIO_WritePin(led.port, led.pin, GPIO_PIN_RESET);
 	}
+}
+
+void Shooter::variableUpdate(std::array<uint8_t, 5> data) {
+	if (moving) return;
+
+	MOTOR385_FIRST = static_cast<float>(data[0] * -1.0f);
+	MOTOR385_MAX = static_cast<float>(data[1] * -1.0f);
+	MOTOR735_FIRST = static_cast<float>(data[2] * -1.0f);
+	MOTOR735_MAX = static_cast<float>(data[3] * -1.0f);
+	OPENCOUNT = data[4];
+
+	INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL;
+	STOPCOUNT = OPENCOUNT + 10;
+
+	MOTOR385_INCREASE = (MOTOR385_MAX - MOTOR385_FIRST) / INCREASE_COUNT;
+	MOTOR735_INCREASE = (MOTOR735_MAX - MOTOR735_FIRST) / INCREASE_COUNT;
+}
+
+bool Shooter::setMode(uint8_t data) {
+	if (moving) return false;
+
+	if (data == 0) {
+		mode = ShooterMode::FLAG;
+		OPENCOUNT = 41;
+	} else if (data == 1) {
+		mode = ShooterMode::DESK;
+		OPENCOUNT = 39;
+	} else if (data == 2) {
+		mode = ShooterMode::BUCKET;
+		OPENCOUNT = 41;
+	} else {
+		return false;
+	}
+	INCREASE_COUNT = OPENCOUNT / INCREASE_INTERVAL;
+	STOPCOUNT = OPENCOUNT + 10;
+
+	MOTOR385_INCREASE = (MOTOR385_MAX - MOTOR385_FIRST) / INCREASE_COUNT;
+	MOTOR735_INCREASE = (MOTOR735_MAX - MOTOR735_FIRST) / INCREASE_COUNT;
+
+	return true;
 }
 
 void Shooter::lock(){
