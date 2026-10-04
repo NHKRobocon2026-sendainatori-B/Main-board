@@ -9,11 +9,11 @@ STM32CubeIDE(1.19.0)
 ## フォルダ構成
 ```txt
 ├── Core
-│　 ├── Inc : jsファイルをまとめている
-│　 │　　　├── component : モーターなど、部品ごとのプログラム
-│　 │　　　└── mechanism : 足回りなど、機構ごとのプログラム
-│　 └── Src
-│　  　　　└── main.cpp
+│　　 ├── Inc
+│　　 │　　├── component : モーターなど、部品ごとのプログラム
+│　　 │　　　└── mechanism : 足回りなど、機構ごとのプログラム
+│　　 └── Src
+│　　  　　└── main.cpp
 ├── Drivers
 └── Scripts : CubeMXによるジェネレートの際、C++で動かす際に使用したスクリプトファイル
 ```
