@@ -8,7 +8,7 @@
 #include "Steering.h"
 
 #define PULSEONE 1179648 //一回転のパルス
-#define DRIVEMAXOUT 40 //ドライブの最大出力
+#define DRIVEMAXOUT 60 //ドライブの最大出力
 //計算用配列、左前y、右前y、左後y、右後ろy、左前X、右前X、左後X、右後ろX
 const float SIGNARRAY[8] = {-1, 1, -1, 1, 1, 1, -1, -1};
 //タイヤと中心の距離

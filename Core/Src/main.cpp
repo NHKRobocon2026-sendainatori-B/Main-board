@@ -56,7 +56,6 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
-TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
@@ -83,7 +82,6 @@ static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -127,7 +125,6 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
-  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   //ステアリング*******************************************************************************
@@ -182,9 +179,9 @@ int main(void)
   	static MD4ch_child ShooterMotor735;
   	static MD4ch_child ShooterMotor385;
   	static MD4ch_child dummy1;
-  	static MD4ch_child flag;
+  	static MD4ch_child flagMotor;
   	dummy1.setMode(Mode::STOP);
-  	flag.setMode(Mode::OPENLOOP);
+  	flagMotor.setMode(Mode::OPENLOOP);
   	static Servo ShooterServo(&htim4, TIM_CHANNEL_2);
   	GPIOPIN led = {
   			.port = GPIOD,
@@ -209,14 +206,14 @@ int main(void)
   //マネージャー終了*******************************************************************************
 
   //送信関連***********************************************************************************
-  	std::vector<MD4ch_child*> motors2 = { &ShooterMotor735, &dummy1, &flag, &ShooterMotor385 };
+  	std::vector<MD4ch_child*> motors2 = { &ShooterMotor735, &ShooterMotor385, &flagMotor, &dummy1 };
   	static m2006_manager m2006manager(&m2006s, &hcan1);
   	m2006_address = &m2006manager;
   	static MD_4ch MD4ch1(&hcan1, &steer_drives, 0x302);
   	static MD_4ch MD4ch2(&hcan1, &motors2, 0x301);
   //送信関連終了********************************************************************************
 
-  flag.setOut(20);
+  flagMotor.setOut(20);
 
   //CAN設定、フィルター
   CAN_FilterTypeDef filter;
@@ -351,56 +348,6 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
-
-}
-
-/**
-  * @brief TIM1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM1_Init(void)
-{
-
-  /* USER CODE BEGIN TIM1_Init 0 */
-
-  /* USER CODE END TIM1_Init 0 */
-
-  TIM_Encoder_InitTypeDef sConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM1_Init 1 */
-
-  /* USER CODE END TIM1_Init 1 */
-  htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
-  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
-  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim1.Init.RepetitionCounter = 0;
-  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 0;
-  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 0;
-  if (HAL_TIM_Encoder_Init(&htim1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM1_Init 2 */
-
-  /* USER CODE END TIM1_Init 2 */
 
 }
 
@@ -610,10 +557,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD3 PD4 PD5 PD6
-                           PD7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
-                          |GPIO_PIN_7;
+  /*Configure GPIO pin : PD3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PD4 PD5 PD6 PD7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);

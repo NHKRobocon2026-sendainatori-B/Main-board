@@ -109,24 +109,24 @@ bool Shooter::setMode(uint8_t data) {
 
 	if (data == 0) {
 		mode = ShooterMode::FLAG;
-		MOTOR385_FIRST = 80;
-		MOTOR385_MAX = 145;
-		MOTOR735_FIRST = 90;
-		MOTOR735_MAX = 150;
+		MOTOR385_FIRST = -80.0f;
+		MOTOR385_MAX = -145.0f;
+		MOTOR735_FIRST = -90.0f;
+		MOTOR735_MAX = -150.0f;
 		OPENCOUNT = 41;
 	} else if (data == 1) {
 		mode = ShooterMode::DESK;
-		MOTOR385_FIRST = 80;
-		MOTOR385_MAX = 160;
-		MOTOR735_FIRST = 90;
-		MOTOR735_MAX = 145;
+		MOTOR385_FIRST = -80.0f;
+		MOTOR385_MAX = -160.0f;
+		MOTOR735_FIRST = -90.0f;
+		MOTOR735_MAX = -145.0f;
 		OPENCOUNT = 25;
 	} else if (data == 2) {
 		mode = ShooterMode::BUCKET;
-		MOTOR385_FIRST = 80;
-		MOTOR385_MAX = 145;
-		MOTOR735_FIRST = 60;
-		MOTOR735_MAX = 115;
+		MOTOR385_FIRST = -80.0f;
+		MOTOR385_MAX = -145.0f;
+		MOTOR735_FIRST = -60.0f;
+		MOTOR735_MAX = -115.0f;
 		OPENCOUNT = 41;
 	} else {
 		return false;
