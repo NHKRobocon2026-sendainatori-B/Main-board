@@ -15,7 +15,7 @@ STM32CubeIDE(1.19.0)
 │　　 └── Src
 │　　  　　└── main.cpp
 ├── Drivers
-└── Scripts : CubeMXによるジェネレートの際、C++で動かす際に使用したスクリプトファイル
+└── Scripts : CubeMXによるジェネレートの際、mainをC++とCで変更していくスクリプトファイル、C++で書けるようになる
 ```
 
 ## 使用しているクラスについて
